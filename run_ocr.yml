@@ -1,0 +1,1 @@
+ansible-playbook -i inventory/hosts.ini -e "ocr_dvm=ocr-dvm" -e "ocr_template=ocr-template-debian-13-xfce" -e "data_vm=data" playbooks/ocr.yml

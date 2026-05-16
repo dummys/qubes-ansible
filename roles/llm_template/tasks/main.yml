@@ -1,0 +1,73 @@
+---
+- name: Install additional packages
+  ansible.builtin.apt:
+    name:
+      - passwd
+      - htop
+      - nvtop
+    state: present
+- name: Download Nvidia repositories
+  command:
+    cmd: "curl -L -o /tmp/cuda-repo.deb {{ nvidia_cuda_url }}"
+- name: Install Nvidia repositories
+  command:
+    cmd: dpkg -i /tmp/cuda-repo.deb
+- name: Update APT
+  ansible.builtin.apt:
+    upgrade: "dist"
+    update_cache: true
+- name: Install Nvidia drivers
+  ansible.builtin.apt:
+    name:
+      - nvidia-driver-cuda
+      - nvidia-kernel-dkms
+    state: present
+- name: Create the ollama group
+  ansible.builtin.group:
+    name: ollama
+    state: present
+- name: Create the ollama user, we do this to control the home directoy and not use the one in the Ollama installer
+  ansible.builtin.user:
+    name: ollama
+    group: ollama
+    groups:
+      - video
+      - render
+    append: true
+    home: /usr/share/ollama
+    shell: /bin/false
+    create_home: true
+    system: true
+    state: present
+- name: Download Ollama installer
+  get_url:
+    url: https://ollama.com/install.sh
+    dest: "/tmp/install.sh"
+    mode: '0755'
+- name: Run Ollama installer, if it was already installed it will update it
+  command:
+    cmd: "/tmp/install.sh"
+  environment:
+    PATH: /usr/bin:/usr/sbin
+- name: Check if override directory exists
+  ansible.builtin.file:
+    path: /etc/systemd/system/ollama.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+- name: Set override for Ollama environment
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/ollama.service.d/override.conf
+    content: |
+      [service]
+      Environment="OLLAMA_FLASH_ATTENTION=1"
+      Environment="OLLAMA_KV_CACHE_TYPE=q8_0"
+      Environment="OLLAMA_NUM_PARALLEL=1"
+      Environment="OLLAMA_KEEP_ALIVE=1h"
+      Environment="OLLAMA_MAX_LOADED_MODELS=1"
+- name: Make sure Ollama is enabled and started
+  systemd_service:
+    name: ollama
+    enabled: true
+    state: started

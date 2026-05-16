@@ -1,0 +1,65 @@
+# group_vars all.yml
+
+# Dom0 Admin User
+admin_user: glecoz
+admin_group: "{{ admin_user }}"
+admin_home: "/home/{{ admin_user }}"
+bin_folder: "{{ admin_home }}/bin"
+
+# VM user
+vm_user: user
+vm_group: user
+vm_user_home: "/home/{{ vm_user }}"
+vm_user_documents: "/home/{{ vm_user }}/Documents"
+
+# Secure boot
+sb_backup_folder: "{{ admin_home }}/Documents/sb-backup"
+
+# Template
+debian_version: 13
+ 
+# Network
+netvm_default: disp-sys-vpn-proton-ch
+#netvm_default: sys-firewall
+
+# VM Bind dir file
+binds_dir: /rw/config/qubes-bind-dirs.d
+binds_file: "{{ binds_dir }}/50_user.conf"
+
+# Config files
+rc_local: /rw/config/rc.local
+
+# dom0 User networking policy file
+networking_policy_file: /etc/qubes/policy.d/30-user-networking.policy
+
+# Data VM
+data_vm: data
+
+# LLM
+llm_base_template: "debian-{{ debian_version }}-xfce"
+llm_template: "llm-template-{{ llm_base_template }}"
+llm_dvm: llm-dvm
+llm_dispvm: llm-disp
+llm_memory: 12000
+llm_tcp_port: 11434
+
+# Claude Code
+claude_code_vm: claude-code
+
+# Sys GPU
+sys_gpu_base_template: "debian-{{ debian_version }}"
+sys_gpu_template: sys-gpu-template
+sys_gpu_dvm: sys-gpu-dvm
+sys_gpu_dispvm: sys-gpu
+sys_gpu_memory: 4000
+sys_gpu_maxmem: 4000
+gpu_pci_id_vga: "00_03.1-00_00.0"
+gpu_pci_id_audio: "00_03.1-00_00.1"
+nvidia_cuda_url: "https://developer.download.nvidia.com/compute/cuda/repos/debian{{ debian_version }}/x86_64/cuda-keyring_1.1-1_all.deb"
+
+# OCR
+ocr_base_template: "debian-{{ debian_version }}-xfce"
+ocr_template: "ocr-template-{{ ocr_base_template }}"
+ocr_dvm: ocr-dvm
+ocr_dispvm: ocr-disp
+ocr_tcp_port: 8000

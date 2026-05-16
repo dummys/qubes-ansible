@@ -1,0 +1,53 @@
+---
+- name: Pull Gemma 4 E4B model
+  command:
+    cmd: ollama pull gemma4:e4b
+- name: Create a version of the model Gemma 4 E4B with a 32K context window
+  ansible.builtin.copy:
+    dest: /tmp/Modelfile.custom
+    content: |
+      FROM gemma4:e4b
+      PARAMETER num_ctx 32768
+      PARAMETER temperature 0.3
+- name: Create the new model
+  command:
+    cmd: "ollama create gemma4:e4b-32k -f /tmp/Modelfile.custom"
+- name: Pull Gemma 4 26B model
+  command:
+    cmd: ollama pull gemma4:26b
+- name: Create a version of the model Gemma 4 26B with a 8K context window
+  ansible.builtin.copy:
+    dest: /tmp/Modelfile.custom
+    content: |
+      FROM gemma4:26b
+      PARAMETER num_ctx 8192
+      PARAMETER temperature 0.3
+- name: Create the new model
+  command:
+    cmd: "ollama create gemma4:26b-8k -f /tmp/Modelfile.custom"
+- name: Pull Qwen 3 14b model
+  command:
+    cmd: ollama pull qwen3:14b
+- name: Create a version of the model with a 256K context window
+  ansible.builtin.copy:
+    dest: /tmp/Modelfile.custom
+    content: |
+      FROM qwen3:14b
+      PARAMETER num_ctx 32768
+      PARAMETER temperature 0.3
+- name: Create the new model
+  command:
+    cmd: "ollama create qwen3:14b-32k -f /tmp/Modelfile.custom"
+- name: Pull Qwen 3 VL 8b model
+  command:
+    cmd: ollama pull qwen3-vl:8b
+- name: Create a version of the model Qwen 3 VL 8b with a 32K context window
+  ansible.builtin.copy:
+    dest: /tmp/Modelfile.custom
+    content: |
+      FROM qwen3-vl:8b
+      PARAMETER num_ctx 32768
+      PARAMETER temperature 0.3
+- name: Create the new model
+  command:
+    cmd: "ollama create qwen3-vl:8b-32k -f /tmp/Modelfile.custom"

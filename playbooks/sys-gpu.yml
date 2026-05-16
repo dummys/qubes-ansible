@@ -1,0 +1,110 @@
+---
+#
+# Template
+#
+- hosts: local
+  connection: local
+  tasks:
+    - name: Check if template exists
+      shell: "qvm-ls --raw-data --fields name | grep -w {{ sys_gpu_template }}"
+      register: template_check
+      failed_when: false
+      changed_when: false
+    - name: Clone template 1/3
+      command:
+        cmd: "qvm-clone {{ sys_gpu_base_template }} {{ sys_gpu_template }}"
+      when: template_check.rc != 0
+    - name: Clone template 2/3 Set network
+      command:
+        cmd: "qvm-prefs {{ sys_gpu_template}} netvm {{ netvm_default }}"
+    - name: Clone template 3/3 Increase qrexec_timeout
+      command:
+        cmd: "qvm-prefs {{ sys_gpu_template}} qrexec_timeout 3600"
+
+- hosts: "{{ sys_gpu_template | default([]) }}"
+  become: yes
+  connection: qubes
+  roles:
+    - role: sys_gpu_template
+
+- hosts: local
+  connection: local
+  tasks:
+    - name: Shutdown the Template
+      qubesos:
+        guest: "{{ sys_gpu_template }}"
+        state: shutdown
+    - name: Remove network access
+      command:
+        cmd: "qvm-prefs {{ sys_gpu_template}} netvm ''"
+
+#
+# DVM
+#
+- hosts: local
+  connection: local
+  tasks:
+    - name: Check if DVM exists
+      shell: "qvm-ls --raw-data --fields name | grep -w {{ sys_gpu_dvm }}"
+      register: dvm_check
+      failed_when: false
+      changed_when: false
+    - name: Create DVM 1/5
+      command:
+        cmd: "qvm-create --class AppVM --label blue --template {{ sys_gpu_template }} {{ sys_gpu_dvm }}"
+      when: dvm_check.rc != 0
+    - name: Create DVM 2/5 Set label
+      command:
+        cmd: "qvm-prefs {{ sys_gpu_dvm }} label blue"
+    - name: Create DVM 3/5 Set network
+      command:
+        cmd: "qvm-prefs {{ sys_gpu_dvm }} netvm {{ netvm_default }}"
+    - name: Create DVM 4/5 Set as DVM 
+      command:
+        cmd: "qvm-prefs {{ sys_gpu_dvm }} template_for_dispvms true"
+    - name: Create DVM 5/5 Increase qrexec_timeout
+      command:
+        cmd: "qvm-prefs {{ sys_gpu_dvm }} qrexec_timeout 3600"
+
+#
+# DispVM
+#
+- hosts: local
+  connection: local
+  tasks:
+    - name: Check if Disp VM exists
+      shell: "qvm-ls --raw-data --fields name | grep -E '^{{ sys_gpu_dispvm }}$'"
+      register: dispvm_check
+      failed_when: false
+      changed_when: false
+    - name: Create Disposable VM 1/10
+      command:
+        cmd: "qvm-create --class DispVM --label red --template {{ sys_gpu_dvm }} {{ sys_gpu_dispvm }}"
+      when: dispvm_check.rc != 0
+    - name: Create Disposable VM 2/10 Set default DVM
+      command:
+        cmd: "qvm-prefs {{ sys_gpu_dispvm }} default_dispvm {{ sys_gpu_dvm }}"
+    - name: Create Disposable VM 3/10 Set label
+      command:
+        cmd: "qvm-prefs {{ sys_gpu_dispvm }} label red"
+    - name: Create Disposable VM 4/10 Set HVM
+      command:
+        cmd: "qvm-prefs {{ sys_gpu_dispvm }} virt_mode hvm"
+    - name: Create Disposable VM 5/10 Set Kernel
+      command:
+        cmd: "qvm-prefs {{ sys_gpu_dispvm }} kernel ''"
+    - name: Create Disposable VM 6/10 Set memory
+      command:
+        cmd: "qvm-prefs {{ sys_gpu_dispvm }} memory {{ sys_gpu_memory }}"
+    - name: Create Disposable VM 7/10 Set Max Memory
+      command:
+        cmd: "qvm-prefs {{ sys_gpu_dispvm }} maxmem {{ sys_gpu_maxmem }}"
+    - name: Create Disposable VM 8/10 Increase qrexec_timeout
+      command:
+        cmd: "qvm-prefs {{ sys_gpu_dispvm }} qrexec_timeout 3600"
+    - name: Create Disposable VM 9/10 Attach VGA
+      command:
+        cmd: "qvm-pci attach {{ sys_gpu_dispvm }} dom0:{{ gpu_pci_id_vga }} --persistent"
+    - name: Create Disposable VM 10/10 Attach Audio
+      command:
+        cmd: "qvm-pci attach {{ sys_gpu_dispvm }} dom0:{{ gpu_pci_id_audio }} --persistent"

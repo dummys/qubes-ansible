@@ -1,0 +1,29 @@
+---
+- name: Check if bin directory exists
+  ansible.builtin.file:
+    path: "{{ bin_folder }}"
+    state: directory
+    owner: "{{ admin_user }}"
+    group: "{{ admin_group }}"
+    mode: '0755'
+- name: Create script to backup key from secureboot
+  ansible.builtin.copy:
+    src: "sb-backup.sh"
+    dest: "{{ bin_folder }}/"
+    owner: "{{ admin_user }}"
+    group: "{{ admin_group }}"
+    mode: '0755'
+- name: Create script to restore keys from the backup to secure boot
+  ansible.builtin.copy:
+    src: "sb-restore.sh"
+    dest: "{{ bin_folder }}/"
+    owner: "{{ admin_user }}"
+    group: "{{ admin_group }}"
+    mode: '0755'
+- name: Copy hook to call sbctl after update
+  ansible.builtin.copy:
+    src: "99-sbctl.install"
+    dest: "/etc/kernel/install.d/"
+    owner: "root"
+    group: "root"
+    mode: '0755'

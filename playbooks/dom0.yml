@@ -1,0 +1,9 @@
+---
+#
+# Dom0
+#
+- hosts: local
+  become: yes
+  connection: local
+  roles:
+    - role: secureboot

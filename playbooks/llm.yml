@@ -1,0 +1,186 @@
+---
+#
+# Template
+#
+- hosts: local
+  connection: local
+  tasks:
+    - name: Check if template exists
+      shell: "qvm-ls --raw-data --fields name | grep -w {{ llm_template }}"
+      register: llm_template_check
+      failed_when: false
+      changed_when: false
+    - name: Clone template 1/3
+      command:
+        cmd: "qvm-clone {{ llm_base_template }} {{ llm_template }}"
+      when: llm_template_check.rc != 0
+    - name: Clone template 2/3 Set network
+      command:
+        cmd: "qvm-prefs {{ llm_template}} netvm {{ netvm_default }}"
+    - name: Clone template 3/3 Increase qrexec_timeout
+      command:
+        cmd: "qvm-prefs {{ llm_template}} qrexec_timeout 3600"
+
+- hosts: "{{ llm_template | default([]) }}"
+  become: yes
+  connection: qubes
+  roles:
+    - role: llm_template
+
+- hosts: local
+  connection: local
+  tasks:
+    - name: Shutdown the LLM Template
+      qubesos:
+        guest: "{{ llm_template }}"
+        state: shutdown
+    - name: Remove the network
+      command:
+        cmd: "qvm-prefs {{ llm_template}} netvm ''"
+
+#
+# DVM
+#
+- hosts: local
+  connection: local
+  tasks:
+    - name: Check if DVM exists
+      shell: "qvm-ls --raw-data --fields name | grep -w {{ llm_dvm }}"
+      register: llm_dvm_check
+      failed_when: false
+      changed_when: false
+    - name: Create DVM 1/6
+      command:
+        cmd: "qvm-create --class AppVM --label blue --template {{ llm_template }} {{ llm_dvm }}"
+      when: llm_dvm_check.rc != 0
+    - name: Create DVM 2/6 Set label
+      command:
+        cmd: "qvm-prefs {{ llm_dvm }} label blue"
+    - name: Create DVM 3/6 Set network
+      command:
+        cmd: "qvm-prefs {{ llm_dvm }} netvm {{ netvm_default }}"
+    - name: Create DVM 4/6 Set as DVM 
+      command:
+        cmd: "qvm-prefs {{ llm_dvm }} template_for_dispvms true"
+    - name: Create DVM 5/6 Resize private volume of LLM DVM
+      command:
+        cmd: "qvm-volume resize {{ llm_dvm }}:private 100GB"
+      when: llm_dvm_check.rc != 0
+    - name: Create DVM 6/6 Increase qrexec_timeout
+      command:
+        cmd: "qvm-prefs {{ llm_dvm }} qrexec_timeout 3600"
+
+- hosts: "{{ llm_dvm | default([]) }}"
+  become: yes
+  connection: qubes
+  roles:
+    - role: llm_dvm_1
+
+- hosts: local
+  connection: local
+  tasks:
+    - name: Shutdown the LLM DVM
+      qubesos:
+        guest: "{{ llm_dvm }}"
+        state: shutdown
+
+- hosts: local
+  connection: local
+  tasks:
+    - name: Start the LLM DVM
+      qubesos:
+        guest: "{{ llm_dvm }}"
+        state: running
+
+- hosts: "{{ llm_dvm | default([]) }}"
+  become: yes
+  connection: qubes
+  roles:
+    - role: llm_dvm_2
+
+- hosts: local
+  connection: local
+  tasks:
+    - name: Shutdown the LLM DVM
+      qubesos:
+        guest: "{{ llm_dvm }}"
+        state: shutdown
+
+#
+# DispVM
+#
+- hosts: local
+  connection: local
+  tasks:
+    - name: Check if Disp VM exists
+      shell: "qvm-ls --raw-data --fields name | grep -w {{ llm_dispvm }}"
+      register: llm_dispvm_check
+      failed_when: false
+      changed_when: false
+    - name: Create Disposable VM 1/5
+      command:
+        cmd: "qvm-create --class DispVM --label red --template {{ llm_dvm }} {{ llm_dispvm }}"
+      when: llm_dispvm_check.rc != 0
+    - name: Create Disposable VM 2/5 Set default DVM
+      command:
+        cmd: "qvm-prefs {{ llm_dispvm }} default_dispvm {{ llm_dvm }}"
+    - name: Create Disposable VM 3/5 Set label
+      command:
+        cmd: "qvm-prefs {{ llm_dispvm }} label red"
+    - name: Create Disposable VM 4/10 Set HVM
+      command:
+        cmd: "qvm-prefs {{ llm_dispvm }} virt_mode hvm"
+    - name: Create Disposable VM 4/5 Set network
+      command:
+        cmd: "qvm-prefs {{ llm_dispvm }} netvm {{ netvm_default }}"
+    - name: Create Disposable VM 5/5 Set VCPU
+      command:
+        cmd: "qvm-prefs {{ llm_dispvm }} vcpus 10"
+    - name: Create Disposable VM 5/5 Set Memory
+      command:
+        cmd: "qvm-prefs {{ llm_dispvm }} memory {{ llm_memory }}"
+    - name: Create Disposable VM 5/5 Set Max Memory to 0 to disable memory balancing
+      command:
+        cmd: "qvm-prefs {{ llm_dispvm }} maxmem 0"
+    - name: Create Disposable VM 5/5 Increase qrexec_timeout
+      command:
+        cmd: "qvm-prefs {{ llm_dispvm }} qrexec_timeout 3600"
+    - name: Create Disposable VM 9/10 Attach VGA
+      command:
+        cmd: "qvm-pci attach {{ llm_dispvm }} dom0:{{ gpu_pci_id_vga }} --persistent"
+    - name: Create Disposable VM 10/10 Attach Audio
+      command:
+        cmd: "qvm-pci attach {{ llm_dispvm }} dom0:{{ gpu_pci_id_audio }} --persistent"
+
+#
+# Allow TCP connection from Claude Code VM
+#
+- hosts: local
+  become: yes
+  connection: local
+  tasks:
+  - name: Check if user network policy file exists
+    file:
+      path: "{{ networking_policy_file }}"
+      owner: root
+      group: qubes
+      mode: '0664'
+      state: touch
+  - name: Set network policy for llm
+    lineinfile:
+      path: "{{ networking_policy_file }}"
+      regexp: "{{ llm_tcp_port }}.*{{ llm_dispvm }}"
+      line: "qubes.ConnectTCP +{{ llm_tcp_port }} {{ claude_code_vm }} @default allow target={{ llm_dispvm }}"
+      state: present
+
+- hosts: "{{ claude_code_vm | default([]) }}"
+  become: yes
+  connection: qubes
+  tasks:
+  - name: Set connection to LLM at startup
+    lineinfile:
+      path: "{{ rc_local}}"
+      regexp: "qvm-connect-tcp.*{{ llm_tcp_port }}"
+      line: "qvm-connect-tcp {{ llm_tcp_port }}:@default:{{ llm_tcp_port }}"
+      state: present
+      
