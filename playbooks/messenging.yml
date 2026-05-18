@@ -1,19 +1,23 @@
 ---
 - hosts: local
   connection: local
+  vars_files:
+    - vars/messenging.yml
   tasks:
     - name: Create a template for messenging VM
       qubesos:
-        guest: fedora-43-xfce-messenging
+        guest: "{{ messenging_host_template }}"
         state: present
         vmtype: "TemplateVM"
         properties:
-          template: "fedora-43-xfce"
+          template: "{{ messenging_base_template }}"
           label: blue
       when: 0 > 1
 
-- hosts: fedora-43-xfce-messenging
+- hosts: "{{ messenging_host_template }}"
   connection: qubes
+  vars_files:
+    - vars/messenging.yml
   tasks:
     - name: Install third party repositories
       become: yes
@@ -23,7 +27,7 @@
     - name: Enable Google Chrome repository
       become: yes
       command:
-        cmd: dnf config-manager setopt google-chrome.enabled=1 
+        cmd: dnf config-manager setopt google-chrome.enabled=1
     - name: Install Chrome (used for Teams)
       become: yes
       yum:
@@ -56,18 +60,22 @@
 
 - hosts: local
   connection: local
+  vars_files:
+    - vars/messenging.yml
   tasks:
     - name: Create messenging AppVM
       qubesos:
-        guest: messenging
+        guest: "{{ messenging_host_vm }}"
         state: present
         properties:
-          template: "fedora-43-xfce-messenging"
+          template: "{{ messenging_host_template }}"
           label: blue
-          netvm: "disp-sys-vpn-proton-ch"
+          netvm: "{{ messenging_netvm }}"
 
-- hosts: messenging
+- hosts: "{{ messenging_host_vm }}"
   connection: qubes
+  vars_files:
+    - vars/messenging.yml
   tasks:
     - name: Make sure autostart folder exists
       file:

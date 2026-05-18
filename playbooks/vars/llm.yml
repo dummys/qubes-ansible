@@ -1,0 +1,8 @@
+---
+llm_base_template: "debian-{{ debian_version }}-xfce"
+llm_host_template: "llm-template-{{ llm_base_template }}"
+llm_host_dvm: llm-dvm
+llm_dispvm: llm-disp
+llm_memory: 12000
+llm_tcp_port: 11434
+llm_host_claude_code: claude-code

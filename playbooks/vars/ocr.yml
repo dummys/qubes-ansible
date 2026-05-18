@@ -1,0 +1,7 @@
+---
+ocr_base_template: "debian-{{ debian_version }}-xfce"
+ocr_host_template: "ocr-template-{{ ocr_base_template }}"
+ocr_host_dvm: ocr-dvm
+ocr_dispvm: ocr-disp
+ocr_tcp_port: 8000
+ocr_host_data: data

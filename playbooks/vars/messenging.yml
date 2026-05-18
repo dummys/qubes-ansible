@@ -1,0 +1,5 @@
+---
+messenging_base_template: fedora-43-xfce
+messenging_host_template: fedora-43-xfce-messenging
+messenging_host_vm: messenging
+messenging_netvm: disp-sys-vpn-proton-ch

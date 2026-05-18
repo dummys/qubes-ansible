@@ -1,0 +1,9 @@
+---
+sys_gpu_base_template: "debian-{{ debian_version }}"
+sys_gpu_host_template: sys-gpu-template
+sys_gpu_dvm: sys-gpu-dvm
+sys_gpu_dispvm: sys-gpu
+sys_gpu_memory: 4000
+sys_gpu_maxmem: 4000
+gpu_pci_id_vga: "00_03.1-00_00.0"
+gpu_pci_id_audio: "00_03.1-00_00.1"

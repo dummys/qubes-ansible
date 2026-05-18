@@ -4,35 +4,30 @@
 #
 - hosts: local
   connection: local
+  vars_files:
+    - vars/ocr.yml
   tasks:
-    - name: Check if template exists
-      shell: "qvm-ls --raw-data --fields name | grep -w {{ ocr_template }}"
-      register: template_check
-      failed_when: false
-      changed_when: false
-    - name: Clone template 1/3
-      command:
-        cmd: "qvm-clone {{ ocr_base_template }} {{ ocr_template }}"
-      when: template_check.rc != 0
-    - name: Clone template 2/3 Set network
-      command:
-        cmd: "qvm-prefs {{ ocr_template }} netvm {{ netvm_default }}"
-    - name: Clone template 3/3 Increase qrexec_timeout
-      command:
-        cmd: "qvm-prefs {{ ocr_template }} qrexec_timeout 3600"
+    - include_tasks: tasks/qubes_clone_template.yml
+      vars:
+        clone_src: "{{ ocr_base_template }}"
+        clone_dest: "{{ ocr_host_template }}"
 
-- hosts: "{{ ocr_template | default([]) }}"
+- hosts: "{{ ocr_host_template | default([]) }}"
   become: yes
   connection: qubes
+  vars_files:
+    - vars/ocr.yml
   roles:
     - role: ocr_template
 
 - hosts: local
   connection: local
+  vars_files:
+    - vars/ocr.yml
   tasks:
     - name: Shutdown the OCR Template
       qubesos:
-        guest: "{{ ocr_template }}"
+        guest: "{{ ocr_host_template }}"
         state: shutdown
 
 #
@@ -40,45 +35,47 @@
 #
 - hosts: local
   connection: local
+  vars_files:
+    - vars/ocr.yml
   tasks:
     - name: Check if DVM exists
-      shell: "qvm-ls --raw-data --fields name | grep -w {{ ocr_dvm }}"
+      shell: "qvm-ls --raw-data --fields name | grep -w {{ ocr_host_dvm }}"
       register: dvm_check
       failed_when: false
       changed_when: false
-    - name: Create DVM 1/6
-      command:
-        cmd: "qvm-create --class AppVM --label blue --template {{ ocr_template }} {{ ocr_dvm }}"
+    - name: Create DVM
+      command: qvm-create --class AppVM --label blue --template {{ ocr_host_template }} {{ ocr_host_dvm }}
       when: dvm_check.rc != 0
-    - name: Create DVM 2/6 Set label
-      command:
-        cmd: "qvm-prefs {{ ocr_dvm }} label blue"
-    - name: Create DVM 3/6 Set network
-      command:
-        cmd: "qvm-prefs {{ ocr_dvm }} netvm {{ netvm_default }}"
-    - name: Create DVM 4/6 Set as DVM 
-      command:
-        cmd: "qvm-prefs {{ ocr_dvm }} template_for_dispvms true"
-    - name: Create DVM 5/6 Resize private volume of OCR DVM, only on creation
-      command:
-        cmd: "qvm-volume resize {{ ocr_dvm }}:private 20GB"
+    - name: Set DVM label
+      command: qvm-prefs {{ ocr_host_dvm }} label blue
+    - name: Set DVM network
+      command: qvm-prefs {{ ocr_host_dvm }} netvm {{ netvm_default }}
+    - name: Set as DispVM template
+      command: qvm-prefs {{ ocr_host_dvm }} template_for_dispvms true
+    - name: Resize private volume
+      command: qvm-volume resize {{ ocr_host_dvm }}:private 20GB
       when: dvm_check.rc != 0
-    - name: Create DVM 6/6 Increase qrexec_timeout
-      command:
-        cmd: "qvm-prefs {{ ocr_dvm }} qrexec_timeout 3600"
+    - include_role:
+        name: qubes_set_timeout
+      vars:
+        target_vm: "{{ ocr_host_dvm }}"
 
-- hosts: "{{ ocr_dvm | default([]) }}"
-  #become: yes
+- hosts: "{{ ocr_host_dvm | default([]) }}"
   connection: qubes
+  vars_files:
+    - vars/ocr.yml
+    - vars/llm.yml
   roles:
     - role: ocr_dvm
 
 - hosts: local
   connection: local
+  vars_files:
+    - vars/ocr.yml
   tasks:
     - name: Shutdown the OCR DVM
       qubesos:
-        guest: "{{ ocr_dvm }}"
+        guest: "{{ ocr_host_dvm }}"
         state: shutdown
 
 #
@@ -86,82 +83,87 @@
 #
 - hosts: local
   connection: local
+  vars_files:
+    - vars/ocr.yml
   tasks:
-    - name: Check if Disp VM exists
+    - name: Check if DispVM exists
       shell: "qvm-ls --raw-data --fields name | grep -w {{ ocr_dispvm }}"
       register: dispvm_check
       failed_when: false
       changed_when: false
-    - name: Create Disposable VM 1/5
-      command:
-        cmd: "qvm-create --class DispVM --label red --template {{ ocr_dvm }} {{ ocr_dispvm }}"
+    - name: Create DispVM
+      command: qvm-create --class DispVM --label red --template {{ ocr_host_dvm }} {{ ocr_dispvm }}
       when: dispvm_check.rc != 0
-    - name: Create Disposable VM 2/5 Set default DVM
-      command:
-        cmd: "qvm-prefs {{ ocr_dispvm }} default_dispvm {{ ocr_dvm }}"
-    - name: Create Disposable VM 3/5 Set label
-      command:
-        cmd: "qvm-prefs {{ ocr_dispvm }} label red"
-    - name: Create Disposable VM 4/5 Set network
-      command:
-        cmd: "qvm-prefs {{ ocr_dispvm }} netvm {{ netvm_default }}"
-    - name: Create Disposable VM 5/5 Increase qrexec_timeout
-      command:
-        cmd: "qvm-prefs {{ ocr_dispvm }} qrexec_timeout 3600"
+    - name: Set default DVM
+      command: qvm-prefs {{ ocr_dispvm }} default_dispvm {{ ocr_host_dvm }}
+    - name: Set label
+      command: qvm-prefs {{ ocr_dispvm }} label red
+    - name: Set network
+      command: qvm-prefs {{ ocr_dispvm }} netvm {{ netvm_default }}
+    - include_role:
+        name: qubes_set_timeout
+      vars:
+        target_vm: "{{ ocr_dispvm }}"
 
 #
-# Allow TCP connection to LLM VM
+# Networking — OCR DispVM → LLM DispVM
 #
 - hosts: local
   become: yes
   connection: local
+  vars_files:
+    - vars/ocr.yml
+    - vars/llm.yml
   tasks:
-  - name: Check if user network policy file exists
-    file:
-      path: "{{ networking_policy_file }}"
-      owner: root
-      group: qubes
-      mode: '0664'
-      state: touch
-  - name: Set network policy for OCR
-    lineinfile:
-      path: "{{ networking_policy_file }}"
-      regexp: "{{ llm_tcp_port }}.*{{ ocr_dispvm }}"
-      line: "qubes.ConnectTCP +{{ llm_tcp_port }} {{ ocr_dispvm }} @default allow target={{ llm_dispvm }}"
-      state: present
+    - name: Ensure network policy file exists
+      file:
+        path: "{{ networking_policy_file }}"
+        owner: root
+        group: qubes
+        mode: '0664'
+        state: touch
+    - name: Set network policy for OCR → LLM
+      lineinfile:
+        path: "{{ networking_policy_file }}"
+        regexp: "{{ llm_tcp_port }}.*{{ ocr_dispvm }}"
+        line: "qubes.ConnectTCP +{{ llm_tcp_port }} {{ ocr_dispvm }} @default allow target={{ llm_dispvm }}"
+        state: present
 
 #
-# Allow TCP connection from Data VM
+# Networking — Data VM → OCR DispVM (disabled)
 #
 - hosts: local
   become: yes
   connection: local
+  vars_files:
+    - vars/ocr.yml
   tasks:
-  - name: Check if user network policy file exists
-    when: 0 > 1
-    file:
-      path: "{{ networking_policy_file }}"
-      owner: root
-      group: qubes
-      mode: '0664'
-      state: touch
-  - name: Set network policy for OCR
-    when: 0 > 1
-    lineinfile:
-      path: "{{ networking_policy_file }}"
-      regexp: "{{ ocr_tcp_port }}.*{{ ocr_dispvm }}"
-      line: "qubes.ConnectTCP +{{ ocr_tcp_port }} {{ data_vm }} @default allow target={{ ocr_dispvm }}"
-      state: present
+    - name: Ensure network policy file exists
+      when: 0 > 1
+      file:
+        path: "{{ networking_policy_file }}"
+        owner: root
+        group: qubes
+        mode: '0664'
+        state: touch
+    - name: Set network policy for Data → OCR
+      when: 0 > 1
+      lineinfile:
+        path: "{{ networking_policy_file }}"
+        regexp: "{{ ocr_tcp_port }}.*{{ ocr_dispvm }}"
+        line: "qubes.ConnectTCP +{{ ocr_tcp_port }} {{ ocr_host_data }} @default allow target={{ ocr_dispvm }}"
+        state: present
 
-- hosts: "{{ data_vm | default([]) }}"
+- hosts: "{{ ocr_host_data | default([]) }}"
   become: yes
   connection: qubes
+  vars_files:
+    - vars/ocr.yml
   tasks:
-  - name: Set connection to OCR at startup
-    when: 0 > 1
-    lineinfile:
-      path: "{{ rc_local}}"
-      regexp: "qvm-connect-tcp.*{{ ocr_tcp_port }}"
-      line: "qvm-connect-tcp {{ ocr_tcp_port }}:@default:{{ ocr_tcp_port }}"
-      state: present
-      
+    - name: Set connection to OCR at startup
+      when: 0 > 1
+      lineinfile:
+        path: "{{ rc_local }}"
+        regexp: "qvm-connect-tcp.*{{ ocr_tcp_port }}"
+        line: "qvm-connect-tcp {{ ocr_tcp_port }}:@default:{{ ocr_tcp_port }}"
+        state: present

@@ -1,0 +1,16 @@
+---
+- name: Check if {{ clone_dest }} exists
+  shell: "qvm-ls --raw-data --fields name | grep -w {{ clone_dest }}"
+  register: _clone_check
+  failed_when: false
+  changed_when: false
+
+- name: Clone {{ clone_src }} to {{ clone_dest }}
+  command: qvm-clone {{ clone_src }} {{ clone_dest }}
+  when: _clone_check.rc != 0
+
+- name: Set network for {{ clone_dest }}
+  command: qvm-prefs {{ clone_dest }} netvm {{ netvm_default }}
+
+- name: Set qrexec_timeout for {{ clone_dest }}
+  command: qvm-prefs {{ clone_dest }} qrexec_timeout 3600
