@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ARCHIVE_PREFIX="ansible-qubes"
+ARCHIVE_PREFIX="qubes-ansible"
 TMP_DIR="/tmp"
 
 for cmd in tar 7z; do
