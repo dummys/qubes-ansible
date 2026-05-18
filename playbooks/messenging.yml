@@ -1,4 +1,12 @@
 ---
+- hosts: "{{ host_messenging_template }}"
+  become: yes
+  connection: qubes
+  vars_files:
+    - vars/messenging.yml
+  roles:
+    - role: base_packages
+
 - hosts: local
   connection: local
   vars_files:

@@ -18,6 +18,7 @@
   vars_files:
     - vars/ocr.yml
   roles:
+    - role: base_packages
     - role: ocr_template
 
 - hosts: local

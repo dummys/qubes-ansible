@@ -1,0 +1,19 @@
+---
+- name: Install base packages (Debian)
+  apt:
+    name:
+      - htop
+      - tmux
+    state: present
+    update_cache: yes
+  become: yes
+  when: ansible_os_family == 'Debian'
+
+- name: Install base packages (RedHat)
+  dnf:
+    name:
+      - htop
+      - tmux
+    state: present
+  become: yes
+  when: ansible_os_family == 'RedHat'

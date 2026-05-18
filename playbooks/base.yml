@@ -1,0 +1,5 @@
+---
+- hosts: "templatevms:standalonevms:!windows_vms"
+  connection: qubes
+  roles:
+    - role: base_packages

@@ -18,6 +18,7 @@
   vars_files:
     - vars/llm.yml
   roles:
+    - role: base_packages
     - role: llm_template
 
 - hosts: local

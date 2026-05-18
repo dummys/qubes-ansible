@@ -11,6 +11,7 @@ This Ansible project manages a Qubes OS system — provisioning, configuring, an
 All playbooks must be run from Dom0 using the wrapper script at the project root:
 
 ```bash
+./ansible-playbook.sh site.yml --tags base
 ./ansible-playbook.sh site.yml --tags dom0
 ./ansible-playbook.sh site.yml --tags llm
 ./ansible-playbook.sh site.yml --tags ocr
@@ -94,6 +95,7 @@ Each feature playbook (llm, ocr, sys-gpu) follows this sequence:
 | `ocr_dvm` | Clones `local-llm-pdf-ocr`, sets up UV venv, copies `.env` config and `start.sh`, wires startup into `rc.local` |
 | `sys_gpu_template` | Installs NVIDIA drivers + CUDA (no Ollama) |
 | `sys_gpu_dvm` | Empty — DVM needs no additional configuration |
+| `base_packages` | Installs `htop` and `tmux` on any Linux VM; uses `ansible_os_family` to select `apt` (Debian) or `dnf` (RedHat); skipped automatically on Windows |
 | `secureboot` | Copies sbctl backup/restore scripts to `~/bin`, installs kernel install hook |
 | `messenging` | Installs Chrome, Snap, Signal, Whatsie on a Fedora template; creates autostart symlinks in AppVM |
 
@@ -109,6 +111,22 @@ The OCR service similarly proxies port 11434 from `ocr-disp` → `llm-disp`.
 
 - `when: 0 > 1` marks tasks that are intentionally disabled (keeps YAML structure intact for future re-enablement)
 - Tasks that only run on VM creation use `when: <check_var>.rc != 0` (e.g. volume resize, clone)
+
+## Keeping README.md up to date
+
+Update `README.md` whenever a change is significant enough that a new user reading
+the docs would be misled without it. Specifically, update when you:
+
+- Add, remove, or rename a playbook or role
+- Change the VM provisioning pattern or networking topology
+- Add or rename inventory groups
+- Change how the wrapper script selects variables (the `host_` prefix rule)
+- Add new run modes or meaningful new `--tags` / `-e` examples
+- Change the testing procedure
+
+Do **not** update README.md for: bug fixes inside a role that don't affect
+external behaviour, variable renames that don't change user-facing commands, or
+refactors that leave the structure identical from the outside.
 
 ## After Making Changes
 

@@ -1,4 +1,7 @@
 ---
+- import_playbook: playbooks/base.yml
+  tags: [base]
+
 - import_playbook: playbooks/dom0.yml
   tags: [dom0]
 
