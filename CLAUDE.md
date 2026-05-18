@@ -135,7 +135,7 @@ Always run a syntax check on every modified playbook before considering work don
 ```bash
 ./ansible-playbook.sh playbooks/llm.yml --syntax-check
 ./ansible-playbook.sh playbooks/ocr.yml --syntax-check
-./ansible-playbook.sh playbooks/sys-gpu.yml --syntax-check
+./ansible-playbook.sh playbooks/sys_gpu.yml --syntax-check
 ./ansible-playbook.sh playbooks/messenging.yml --syntax-check
 ```
 

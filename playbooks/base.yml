@@ -3,3 +3,12 @@
   connection: qubes
   roles:
     - role: base_packages
+
+- hosts: local
+  connection: local
+  tasks:
+    - include_role:
+        name: qubes_set_timeout
+      vars:
+        target_vm: "{{ item }}"
+      loop: "{{ groups['appvms'] + groups['templatevms'] + groups['standalonevms'] + groups['windows_vms'] }}"

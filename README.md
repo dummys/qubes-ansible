@@ -113,7 +113,7 @@ without removing the code.
 │   ├── dom0.yml                 # Dom0: secure boot key management
 │   ├── llm.yml                  # LLM stack: template → DVM → DispVM → networking
 │   ├── ocr.yml                  # OCR stack: template → DVM → DispVM → networking
-│   ├── sys-gpu.yml              # sys-gpu: template → DVM → DispVM
+│   ├── sys_gpu.yml              # sys-gpu: template → DVM → DispVM
 │   ├── messenging.yml           # Messaging: template packages + AppVM autostart
 │   │
 │   ├── group_vars/
@@ -129,7 +129,7 @@ without removing the code.
 │       └── qubes_clone_template.yml   # Reusable: clone + set netvm + set qrexec_timeout
 │
 └── roles/
-    ├── base_packages/           # htop + tmux on any Linux VM (apt or dnf via ansible_os_family)
+    ├── base_packages/           # htop + tmux + ... on any Linux VM (apt or dnf via ansible_os_family)
     ├── llm_template/            # NVIDIA drivers, CUDA, Ollama service + systemd overrides
     ├── llm_dvm_1/               # Qubes bind-dirs for /usr/share/ollama (model persistence)
     ├── llm_dvm_2/               # Pull Ollama models; create custom 32k/8k context variants
@@ -168,7 +168,7 @@ connecting to any VM. Run this after every change:
 # Check a single playbook
 ./ansible-playbook.sh playbooks/llm.yml --syntax-check
 ./ansible-playbook.sh playbooks/ocr.yml --syntax-check
-./ansible-playbook.sh playbooks/sys-gpu.yml --syntax-check
+./ansible-playbook.sh playbooks/sys_gpu.yml --syntax-check
 ./ansible-playbook.sh playbooks/messenging.yml --syntax-check
 ./ansible-playbook.sh playbooks/base.yml --syntax-check
 
@@ -276,6 +276,6 @@ ansible -i inventory/hosts.yml llm-template-debian-13-xfce \
 # Re-run the LLM playbook but only the plays that target Dom0 (local)
 ./ansible-playbook.sh playbooks/llm.yml --limit localhost
 
-# Re-run base packages on Debian templates only
+# Re-run base on Debian templates only
 ./ansible-playbook.sh playbooks/base.yml --limit 'debian*'
 ```
