@@ -1,6 +1,6 @@
 ---
 sys_gpu_base_template: "debian-{{ debian_version }}"
-sys_gpu_host_template: sys-gpu-template
+host_sys_gpu_template: sys-gpu-template
 sys_gpu_dvm: sys-gpu-dvm
 sys_gpu_dispvm: sys-gpu
 sys_gpu_memory: 4000

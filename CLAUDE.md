@@ -18,7 +18,7 @@ All playbooks must be run from Dom0 using the wrapper script at the project root
 ./ansible-playbook.sh site.yml --tags messenging
 ```
 
-**Always use `ansible-playbook.sh` instead of `ansible-playbook` directly.** The wrapper auto-injects all `_host_` variables as `-e` flags so they are available when Ansible evaluates `hosts:` patterns (which happens before `vars_files` are loaded).
+**Always use `ansible-playbook.sh` instead of `ansible-playbook` directly.** The wrapper auto-injects all `host_*` variables as `-e` flags so they are available when Ansible evaluates `hosts:` patterns (which happens before `vars_files` are loaded).
 
 `ansible.cfg` sets `inventory = ./inventory`, so no `-i` flag is needed.
 
@@ -58,15 +58,15 @@ Each play loads only what it needs via `vars_files`. The LLM DispVM play also lo
 
 ### Host Variables Convention
 
-Variables used in `hosts:` patterns are named with `_host_` in the middle:
+Variables used in `hosts:` patterns are prefixed with `host_`:
 
 ```
-<feature>_host_<descriptor>
+host_<feature>_<descriptor>
 ```
 
-Examples: `llm_host_template`, `llm_host_dvm`, `llm_host_claude_code`, `ocr_host_template`, `ocr_host_dvm`, `ocr_host_data`, `sys_gpu_host_template`, `messenging_host_template`, `messenging_host_vm`.
+Examples: `host_llm_template`, `host_llm_dvm`, `host_llm_claude_code`, `host_ocr_template`, `host_ocr_dvm`, `host_ocr_data`, `host_sys_gpu_template`, `host_messenging_template`, `host_messenging_vm`.
 
-The `ansible-playbook.sh` wrapper greps for this pattern, resolves any Jinja2 references, and passes each as `-e var=value`. This is necessary because Ansible resolves `hosts:` before loading `vars_files`.
+The `ansible-playbook.sh` wrapper greps for this prefix, resolves any Jinja2 references, and passes each as `-e var=value`. This is necessary because Ansible resolves `hosts:` before loading `vars_files`.
 
 ### VM Provisioning Pattern
 
@@ -109,3 +109,20 @@ The OCR service similarly proxies port 11434 from `ocr-disp` → `llm-disp`.
 
 - `when: 0 > 1` marks tasks that are intentionally disabled (keeps YAML structure intact for future re-enablement)
 - Tasks that only run on VM creation use `when: <check_var>.rc != 0` (e.g. volume resize, clone)
+
+## After Making Changes
+
+Always run a syntax check on every modified playbook before considering work done. Outside Dom0 the check will report `qubesos` module errors (the collection is only installed on Dom0) — those are expected and pre-existing; all other errors must be resolved.
+
+```bash
+./ansible-playbook.sh playbooks/llm.yml --syntax-check
+./ansible-playbook.sh playbooks/ocr.yml --syntax-check
+./ansible-playbook.sh playbooks/sys-gpu.yml --syntax-check
+./ansible-playbook.sh playbooks/messenging.yml --syntax-check
+```
+
+Or for site.yml when it covers the changed area:
+
+```bash
+./ansible-playbook.sh site.yml --tags llm --syntax-check
+```

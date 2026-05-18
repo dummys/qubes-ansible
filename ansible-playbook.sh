@@ -1,5 +1,5 @@
 #!/bin/bash
-# Wraps ansible-playbook, auto-injecting all *_host_* variables as -e flags.
+# Wraps ansible-playbook, auto-injecting all host_* variables as -e flags.
 #
 # Ansible evaluates `hosts:` patterns before loading vars_files, so any variable
 # used in a hosts: field must be supplied via -e (extra vars) or inventory.
@@ -51,7 +51,7 @@ def resolve(val, ctx, depth=0):
     return val
 
 for k, v in merged.items():
-    if '_host_' in k:
+    if k.startswith('host_'):
         print(f'-e {k}={resolve(str(v), merged)}')
 PYEOF
 )

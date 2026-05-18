@@ -10,9 +10,9 @@
     - include_tasks: tasks/qubes_clone_template.yml
       vars:
         clone_src: "{{ llm_base_template }}"
-        clone_dest: "{{ llm_host_template }}"
+        clone_dest: "{{ host_llm_template }}"
 
-- hosts: "{{ llm_host_template | default([]) }}"
+- hosts: "{{ host_llm_template | default([]) }}"
   become: yes
   connection: qubes
   vars_files:
@@ -27,10 +27,10 @@
   tasks:
     - name: Shutdown the LLM Template
       qubesos:
-        guest: "{{ llm_host_template }}"
+        guest: "{{ host_llm_template }}"
         state: shutdown
     - name: Remove the network
-      command: qvm-prefs {{ llm_host_template }} netvm ''
+      command: qvm-prefs {{ host_llm_template }} netvm ''
 
 #
 # DVM
@@ -41,28 +41,28 @@
     - vars/llm.yml
   tasks:
     - name: Check if DVM exists
-      shell: "qvm-ls --raw-data --fields name | grep -w {{ llm_host_dvm }}"
+      shell: "qvm-ls --raw-data --fields name | grep -w {{ host_llm_dvm }}"
       register: llm_dvm_check
       failed_when: false
       changed_when: false
     - name: Create DVM
-      command: qvm-create --class AppVM --label blue --template {{ llm_host_template }} {{ llm_host_dvm }}
+      command: qvm-create --class AppVM --label blue --template {{ host_llm_template }} {{ host_llm_dvm }}
       when: llm_dvm_check.rc != 0
     - name: Set DVM label
-      command: qvm-prefs {{ llm_host_dvm }} label blue
+      command: qvm-prefs {{ host_llm_dvm }} label blue
     - name: Set DVM network
-      command: qvm-prefs {{ llm_host_dvm }} netvm {{ netvm_default }}
+      command: qvm-prefs {{ host_llm_dvm }} netvm {{ netvm_default }}
     - name: Set as DispVM template
-      command: qvm-prefs {{ llm_host_dvm }} template_for_dispvms true
+      command: qvm-prefs {{ host_llm_dvm }} template_for_dispvms true
     - name: Resize private volume
-      command: qvm-volume resize {{ llm_host_dvm }}:private 100GB
+      command: qvm-volume resize {{ host_llm_dvm }}:private 100GB
       when: llm_dvm_check.rc != 0
     - include_role:
         name: qubes_set_timeout
       vars:
-        target_vm: "{{ llm_host_dvm }}"
+        target_vm: "{{ host_llm_dvm }}"
 
-- hosts: "{{ llm_host_dvm | default([]) }}"
+- hosts: "{{ host_llm_dvm | default([]) }}"
   become: yes
   connection: qubes
   vars_files:
@@ -77,7 +77,7 @@
   tasks:
     - name: Shutdown the LLM DVM
       qubesos:
-        guest: "{{ llm_host_dvm }}"
+        guest: "{{ host_llm_dvm }}"
         state: shutdown
 
 - hosts: local
@@ -87,10 +87,10 @@
   tasks:
     - name: Start the LLM DVM
       qubesos:
-        guest: "{{ llm_host_dvm }}"
+        guest: "{{ host_llm_dvm }}"
         state: running
 
-- hosts: "{{ llm_host_dvm | default([]) }}"
+- hosts: "{{ host_llm_dvm | default([]) }}"
   become: yes
   connection: qubes
   vars_files:
@@ -105,7 +105,7 @@
   tasks:
     - name: Shutdown the LLM DVM
       qubesos:
-        guest: "{{ llm_host_dvm }}"
+        guest: "{{ host_llm_dvm }}"
         state: shutdown
 
 #
@@ -123,10 +123,10 @@
       failed_when: false
       changed_when: false
     - name: Create DispVM
-      command: qvm-create --class DispVM --label red --template {{ llm_host_dvm }} {{ llm_dispvm }}
+      command: qvm-create --class DispVM --label red --template {{ host_llm_dvm }} {{ llm_dispvm }}
       when: llm_dispvm_check.rc != 0
     - name: Set default DVM
-      command: qvm-prefs {{ llm_dispvm }} default_dispvm {{ llm_host_dvm }}
+      command: qvm-prefs {{ llm_dispvm }} default_dispvm {{ host_llm_dvm }}
     - name: Set label
       command: qvm-prefs {{ llm_dispvm }} label red
     - name: Set HVM mode
@@ -168,10 +168,10 @@
       lineinfile:
         path: "{{ networking_policy_file }}"
         regexp: "{{ llm_tcp_port }}.*{{ llm_dispvm }}"
-        line: "qubes.ConnectTCP +{{ llm_tcp_port }} {{ llm_host_claude_code }} @default allow target={{ llm_dispvm }}"
+        line: "qubes.ConnectTCP +{{ llm_tcp_port }} {{ host_llm_claude_code }} @default allow target={{ llm_dispvm }}"
         state: present
 
-- hosts: "{{ llm_host_claude_code | default([]) }}"
+- hosts: "{{ host_llm_claude_code | default([]) }}"
   become: yes
   connection: qubes
   vars_files:

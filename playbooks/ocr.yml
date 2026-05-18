@@ -10,9 +10,9 @@
     - include_tasks: tasks/qubes_clone_template.yml
       vars:
         clone_src: "{{ ocr_base_template }}"
-        clone_dest: "{{ ocr_host_template }}"
+        clone_dest: "{{ host_ocr_template }}"
 
-- hosts: "{{ ocr_host_template | default([]) }}"
+- hosts: "{{ host_ocr_template | default([]) }}"
   become: yes
   connection: qubes
   vars_files:
@@ -27,7 +27,7 @@
   tasks:
     - name: Shutdown the OCR Template
       qubesos:
-        guest: "{{ ocr_host_template }}"
+        guest: "{{ host_ocr_template }}"
         state: shutdown
 
 #
@@ -39,28 +39,28 @@
     - vars/ocr.yml
   tasks:
     - name: Check if DVM exists
-      shell: "qvm-ls --raw-data --fields name | grep -w {{ ocr_host_dvm }}"
+      shell: "qvm-ls --raw-data --fields name | grep -w {{ host_ocr_dvm }}"
       register: dvm_check
       failed_when: false
       changed_when: false
     - name: Create DVM
-      command: qvm-create --class AppVM --label blue --template {{ ocr_host_template }} {{ ocr_host_dvm }}
+      command: qvm-create --class AppVM --label blue --template {{ host_ocr_template }} {{ host_ocr_dvm }}
       when: dvm_check.rc != 0
     - name: Set DVM label
-      command: qvm-prefs {{ ocr_host_dvm }} label blue
+      command: qvm-prefs {{ host_ocr_dvm }} label blue
     - name: Set DVM network
-      command: qvm-prefs {{ ocr_host_dvm }} netvm {{ netvm_default }}
+      command: qvm-prefs {{ host_ocr_dvm }} netvm {{ netvm_default }}
     - name: Set as DispVM template
-      command: qvm-prefs {{ ocr_host_dvm }} template_for_dispvms true
+      command: qvm-prefs {{ host_ocr_dvm }} template_for_dispvms true
     - name: Resize private volume
-      command: qvm-volume resize {{ ocr_host_dvm }}:private 20GB
+      command: qvm-volume resize {{ host_ocr_dvm }}:private 20GB
       when: dvm_check.rc != 0
     - include_role:
         name: qubes_set_timeout
       vars:
-        target_vm: "{{ ocr_host_dvm }}"
+        target_vm: "{{ host_ocr_dvm }}"
 
-- hosts: "{{ ocr_host_dvm | default([]) }}"
+- hosts: "{{ host_ocr_dvm | default([]) }}"
   connection: qubes
   vars_files:
     - vars/ocr.yml
@@ -75,7 +75,7 @@
   tasks:
     - name: Shutdown the OCR DVM
       qubesos:
-        guest: "{{ ocr_host_dvm }}"
+        guest: "{{ host_ocr_dvm }}"
         state: shutdown
 
 #
@@ -92,10 +92,10 @@
       failed_when: false
       changed_when: false
     - name: Create DispVM
-      command: qvm-create --class DispVM --label red --template {{ ocr_host_dvm }} {{ ocr_dispvm }}
+      command: qvm-create --class DispVM --label red --template {{ host_ocr_dvm }} {{ ocr_dispvm }}
       when: dispvm_check.rc != 0
     - name: Set default DVM
-      command: qvm-prefs {{ ocr_dispvm }} default_dispvm {{ ocr_host_dvm }}
+      command: qvm-prefs {{ ocr_dispvm }} default_dispvm {{ host_ocr_dvm }}
     - name: Set label
       command: qvm-prefs {{ ocr_dispvm }} label red
     - name: Set network
@@ -151,10 +151,10 @@
       lineinfile:
         path: "{{ networking_policy_file }}"
         regexp: "{{ ocr_tcp_port }}.*{{ ocr_dispvm }}"
-        line: "qubes.ConnectTCP +{{ ocr_tcp_port }} {{ ocr_host_data }} @default allow target={{ ocr_dispvm }}"
+        line: "qubes.ConnectTCP +{{ ocr_tcp_port }} {{ host_ocr_data }} @default allow target={{ ocr_dispvm }}"
         state: present
 
-- hosts: "{{ ocr_host_data | default([]) }}"
+- hosts: "{{ host_ocr_data | default([]) }}"
   become: yes
   connection: qubes
   vars_files:

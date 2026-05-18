@@ -6,7 +6,7 @@
   tasks:
     - name: Create a template for messenging VM
       qubesos:
-        guest: "{{ messenging_host_template }}"
+        guest: "{{ host_messenging_template }}"
         state: present
         vmtype: "TemplateVM"
         properties:
@@ -14,7 +14,7 @@
           label: blue
       when: 0 > 1
 
-- hosts: "{{ messenging_host_template }}"
+- hosts: "{{ host_messenging_template }}"
   connection: qubes
   vars_files:
     - vars/messenging.yml
@@ -65,14 +65,14 @@
   tasks:
     - name: Create messenging AppVM
       qubesos:
-        guest: "{{ messenging_host_vm }}"
+        guest: "{{ host_messenging_vm }}"
         state: present
         properties:
-          template: "{{ messenging_host_template }}"
+          template: "{{ host_messenging_template }}"
           label: blue
           netvm: "{{ messenging_netvm }}"
 
-- hosts: "{{ messenging_host_vm }}"
+- hosts: "{{ host_messenging_vm }}"
   connection: qubes
   vars_files:
     - vars/messenging.yml
