@@ -5,5 +5,12 @@
 - hosts: local
   become: yes
   connection: local
+  pre_tasks:
+    - name: Update all packages
+      command: qubes-dom0-update -y
+
+    - name: Install base packages
+      command: qubes-dom0-update -y tmux htop 7zip vim
+
   roles:
     - role: secureboot
