@@ -46,9 +46,9 @@
       changed_when: false
     - name: Create AppVM
       command: qvm-create --class AppVM --label blue --template {{ host_firefox_template }} {{ host_firefox_app }}
-      when: dvm_check.rc != 0
-    - name: Set DVM network
-      command: qvm-prefs {{ host_firefox_dvm }} netvm {{ netvm_default }}
+      when: app_check.rc != 0
+    - name: Set APP network
+      command: qvm-prefs {{ host_firefox_app }} netvm {{ netvm_default }}
     - include_role:
         name: qubes_set_prefs
       vars:
