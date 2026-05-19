@@ -1,7 +1,7 @@
-# group_vars all.yml
+# group_vars/all/main.yml
+# Non-secret global variables. Secrets (admin_user, …) live in secrets.yml (vault).
 
-# Dom0 Admin User
-admin_user: glecoz
+# Dom0 Admin User — defined in secrets.yml vault
 admin_group: "{{ admin_user }}"
 admin_home: "/home/{{ admin_user }}"
 bin_folder: "{{ admin_home }}/bin"

@@ -3,10 +3,19 @@
 #
 # Ansible evaluates `hosts:` patterns before loading vars_files, so any variable
 # used in a hosts: field must be supplied via -e (extra vars) or inventory.
-# This script parses playbooks/vars/*.yml and group_vars/all.yml, resolves simple
+# This script parses playbooks/vars/*.yml and group_vars/all/*.yml, resolves simple
 # Jinja2 references, and injects matching variables automatically.
+# Encrypted vault files are detected and skipped during this parsing step.
+#
+# Vault password: if .vault_pass exists at the project root it is passed to
+# ansible-playbook automatically. Otherwise pass --ask-vault-pass yourself.
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+VAULT_ARGS=""
+if [ -f "$SCRIPT_DIR/.vault_pass" ]; then
+    VAULT_ARGS="--vault-password-file $SCRIPT_DIR/.vault_pass"
+fi
 
 EXTRA_VARS=$(SCRIPT_DIR="$SCRIPT_DIR" python3 << 'PYEOF'
 import os, re, sys
@@ -20,8 +29,16 @@ except ImportError:
 script_dir = os.environ['SCRIPT_DIR']
 merged = {}
 
+group_vars_all_dir = os.path.join(script_dir, 'playbooks', 'group_vars', 'all')
 vars_dir = os.path.join(script_dir, 'playbooks', 'vars')
-paths = [os.path.join(script_dir, 'playbooks', 'group_vars', 'all.yml')]
+
+paths = []
+if os.path.isdir(group_vars_all_dir):
+    paths += sorted(
+        os.path.join(group_vars_all_dir, f)
+        for f in os.listdir(group_vars_all_dir)
+        if f.endswith(('.yml', '.yaml'))
+    )
 if os.path.isdir(vars_dir):
     paths += sorted(
         os.path.join(vars_dir, f)
@@ -30,11 +47,15 @@ if os.path.isdir(vars_dir):
     )
 
 for path in paths:
-    if os.path.isfile(path):
-        with open(path) as f:
-            data = yaml.safe_load(f)
-            if isinstance(data, dict):
-                merged.update(data)
+    if not os.path.isfile(path):
+        continue
+    with open(path) as f:
+        if f.readline().startswith('$ANSIBLE_VAULT'):
+            continue  # Skip encrypted vault files
+        f.seek(0)
+        data = yaml.safe_load(f)
+        if isinstance(data, dict):
+            merged.update(data)
 
 def resolve(val, ctx, depth=0):
     """Resolve simple {{ varname }} references; stops after 10 levels."""
@@ -56,4 +77,4 @@ for k, v in merged.items():
 PYEOF
 )
 
-exec ansible-playbook $EXTRA_VARS "$@"
+exec ansible-playbook $VAULT_ARGS $EXTRA_VARS "$@"

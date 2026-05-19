@@ -139,8 +139,84 @@ without removing the code.
     ├── sys_gpu_dvm/             # Empty — no additional DVM config needed
     ├── secureboot/              # sbctl backup/restore scripts + kernel install hook
     ├── messenging/              # Chrome, Snap, Signal, Whatsie; autostart symlinks
-    └── qubes_set_timeout/       # Reusable: set qrexec_timeout on any target VM
+    ├── firefox/                 # Firefox install, policies, and skel profile
+    └── qubes_set_prefs/         # Reusable: set qrexec_timeout / maxmem / memory / vcpus on any VM
 ```
+
+
+---
+
+## Firefox role
+
+The `firefox` role installs Firefox and applies a base configuration that works for
+any template or AppVM. It is not wired into `site.yml` by default — include it from
+whichever feature playbook needs it.
+
+### What the role always does
+
+- Installs `firefox-esr` (Debian) or `firefox` (Fedora/RedHat)
+- Deploys an enterprise `policies.json` that:
+  - Does not check for default browser
+  - Skips the first-run welcome page
+  - Sets DuckDuckGo as the homepage
+  - Force-installs **uBlock Origin** and **Adblock Plus** (user cannot remove)
+- Places a pre-configured profile skeleton in `/etc/skel/.mozilla/firefox/` so every
+  AppVM that is created from the template inherits the profile automatically
+
+### Optional extensions
+
+A catalog of pre-defined optional extensions lives in
+`roles/firefox/defaults/main.yml` under `firefox_available_extra_extensions`.
+Set `firefox_extra_extensions` to a list of catalog keys in the playbook that
+calls the role:
+
+```yaml
+- hosts: "{{ host_my_template }}"
+  connection: qubes
+  roles:
+    - role: firefox
+      vars:
+        firefox_extra_extensions:
+          - multi_account_containers
+          - facebook_container
+          - google_container
+          - temporary_containers
+          - print_edit_we
+          - fireshot
+          - cookies_txt
+```
+
+Optional extensions are installed on first Firefox launch (requires network in the
+AppVM) and can be removed by the user, unlike the force-installed base extensions.
+
+Available catalog keys:
+
+| Key | Extension |
+|-----|-----------|
+| `print_edit_we` | Print Edit WE |
+| `fireshot` | FireShot |
+| `multi_account_containers` | Firefox Multi-Account Containers |
+| `temporary_containers` | Temporary Containers |
+| `facebook_container` | Facebook Container |
+| `google_container` | Google Container |
+| `cookies_txt` | Get cookies.txt LOCALLY |
+
+### Adding a new extension to the catalog
+
+Open `roles/firefox/defaults/main.yml` and add an entry under
+`firefox_available_extra_extensions`:
+
+```yaml
+firefox_available_extra_extensions:
+  # ... existing entries ...
+  my_extension:
+    install_url: "https://addons.mozilla.org/firefox/downloads/latest/<amo-slug>/latest.xpi"
+```
+
+Where `<amo-slug>` is the extension's URL slug on
+[addons.mozilla.org](https://addons.mozilla.org) (the last path segment on the
+extension's AMO page). Once added, `my_extension` becomes a valid key in any
+playbook's `firefox_extra_extensions` list.
 
 ### LLM networking topology
 
@@ -156,6 +232,75 @@ ocr-disp (DispVM)
     ▼
 qubes.ConnectTCP policy → llm-disp
 ```
+
+---
+
+## First-time setup
+
+Secret variables (currently just `admin_user`, your Dom0 username) are kept in an
+Ansible-vault-encrypted file that **is committed to the repository** — the ciphertext
+is safe to share, only the vault password must be kept private.
+
+### 1. Create and encrypt the vault file
+
+```bash
+ansible-vault create playbooks/group_vars/all/secrets.yml
+```
+
+Ansible will open your editor. Paste the content from the example file and fill in
+your values:
+
+```bash
+cat playbooks/group_vars/all/secrets.yml.example
+```
+
+Minimal content:
+
+```yaml
+admin_user: your_dom0_username
+```
+
+Save and close the editor. The file is now AES-256 encrypted on disk and safe to
+commit.
+
+### 2. Supply the vault password at runtime
+
+**Option A — prompt each run (simplest):**
+
+```bash
+./ansible-playbook.sh site.yml --tags dom0 --ask-vault-pass
+```
+
+**Option B — password file (recommended for repeated use):**
+
+```bash
+echo 'your_vault_password' > .vault_pass
+chmod 600 .vault_pass
+```
+
+`.vault_pass` is listed in `.gitignore` and will never be committed. The wrapper
+script detects it automatically and passes it to `ansible-playbook` — no extra flag
+needed:
+
+```bash
+./ansible-playbook.sh site.yml --tags dom0
+```
+
+### Adding new secrets
+
+Open the vault for editing:
+
+```bash
+ansible-vault edit playbooks/group_vars/all/secrets.yml
+```
+
+Add the new variable in plain YAML. It is immediately available in every playbook
+and role as a normal Ansible variable — no `vars_files` entry needed because the
+vault file lives in `group_vars/all/` and Ansible loads that directory automatically
+for every play.
+
+Also add the variable to `secrets.yml.example` (without the real value) so other
+users know what to provide.
 
 ---
 

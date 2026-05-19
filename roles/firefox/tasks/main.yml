@@ -24,9 +24,35 @@
     mode: '0755'
   become: yes
 
+- name: Build extra extension install URL list
+  ansible.builtin.set_fact:
+    _firefox_extra_install_urls: >-
+      {{
+        firefox_extra_extensions
+        | map('extract', firefox_available_extra_extensions)
+        | map(attribute='install_url')
+        | list
+      }}
+
+- name: Build Firefox policies document
+  ansible.builtin.set_fact:
+    _firefox_policies:
+      policies:
+        DontCheckDefaultBrowser: true
+        OverrideFirstRunPage: ""
+        OverridePostUpdatePage: ""
+        DisableTelemetry: true
+        Homepage:
+          URL: "https://duckduckgo.com"
+          Locked: false
+          StartPage: "homepage"
+        ExtensionSettings: "{{ firefox_base_extensions }}"
+        Extensions:
+          Install: "{{ _firefox_extra_install_urls }}"
+
 - name: Deploy Firefox policies
   ansible.builtin.copy:
-    src: policies.json
+    content: "{{ _firefox_policies | to_nice_json }}\n"
     dest: "{{ firefox_dist_path }}/policies.json"
     mode: '0644'
   become: yes

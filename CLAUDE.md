@@ -48,7 +48,8 @@ Variables are split by scope:
 
 | Location | Contains |
 |----------|----------|
-| `playbooks/group_vars/all.yml` | Truly global: admin/VM user paths, `netvm_default`, `debian_version`, bind-dir paths, `rc_local`, networking policy path |
+| `playbooks/group_vars/all/main.yml` | Truly global non-secret vars: VM user paths, `netvm_default`, `debian_version`, bind-dir paths, `rc_local`, networking policy path |
+| `playbooks/group_vars/all/secrets.yml` | Ansible-vault-encrypted secrets: `admin_user` and any future secrets; auto-loaded for every play |
 | `playbooks/vars/base.yml` | `vm_resource_config` list — per-VM overrides for `maxmem`, `memory`, and `vcpus` |
 | `playbooks/vars/llm.yml` | LLM template/DVM/DispVM names, memory, TCP port, claude-code VM name |
 | `playbooks/vars/ocr.yml` | OCR template/DVM/DispVM names, TCP port, data VM name |
