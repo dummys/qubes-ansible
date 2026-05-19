@@ -49,6 +49,7 @@ Variables are split by scope:
 | Location | Contains |
 |----------|----------|
 | `playbooks/group_vars/all.yml` | Truly global: admin/VM user paths, `netvm_default`, `debian_version`, bind-dir paths, `rc_local`, networking policy path |
+| `playbooks/vars/base.yml` | `vm_resource_config` list — per-VM overrides for `maxmem`, `memory`, and `vcpus` |
 | `playbooks/vars/llm.yml` | LLM template/DVM/DispVM names, memory, TCP port, claude-code VM name |
 | `playbooks/vars/ocr.yml` | OCR template/DVM/DispVM names, TCP port, data VM name |
 | `playbooks/vars/sys_gpu.yml` | GPU template/DVM/DispVM names, memory limits, PCI IDs for GPU passthrough |
@@ -81,7 +82,7 @@ Each feature playbook (llm, ocr, sys-gpu) follows this sequence:
 
 | Component | Location | Purpose |
 |-----------|----------|---------|
-| `qubes_set_timeout` role | `roles/qubes_set_timeout/` | Sets `qrexec_timeout` on any VM; use via `include_role` with `vars: target_vm: ...` |
+| `qubes_set_prefs` role | `roles/qubes_set_prefs/` | Sets any combination of `qrexec_timeout`, `maxmem`, `memory`, `vcpus` on a VM; use via `include_role` with `vars: target_vm: ...` and any of `vm_qrexec_timeout`, `vm_maxmem`, `vm_memory`, `vm_vcpus` — only defined vars are applied |
 | `qubes_clone_template` tasks | `playbooks/tasks/qubes_clone_template.yml` | Clone + set netvm + set timeout; use via `include_tasks` with `vars: clone_src/clone_dest` |
 
 ### Roles

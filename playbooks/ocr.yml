@@ -57,9 +57,10 @@
       command: qvm-volume resize {{ host_ocr_dvm }}:private 20GB
       when: dvm_check.rc != 0
     - include_role:
-        name: qubes_set_timeout
+        name: qubes_set_prefs
       vars:
         target_vm: "{{ host_ocr_dvm }}"
+        vm_qrexec_timeout: 3600
 
 - hosts: "{{ host_ocr_dvm | default([]) }}"
   connection: qubes
@@ -102,9 +103,10 @@
     - name: Set network
       command: qvm-prefs {{ ocr_dispvm }} netvm {{ netvm_default }}
     - include_role:
-        name: qubes_set_timeout
+        name: qubes_set_prefs
       vars:
         target_vm: "{{ ocr_dispvm }}"
+        vm_qrexec_timeout: 3600
 
 #
 # Networking — OCR DispVM → LLM DispVM

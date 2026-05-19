@@ -6,9 +6,21 @@
 
 - hosts: local
   connection: local
+  vars_files:
+    - vars/base.yml
   tasks:
     - include_role:
-        name: qubes_set_timeout
+        name: qubes_set_prefs
       vars:
         target_vm: "{{ item }}"
+        vm_qrexec_timeout: 3600
       loop: "{{ groups['appvms'] + groups['templatevms'] + groups['standalonevms'] + groups['windows_vms'] }}"
+
+    - include_role:
+        name: qubes_set_prefs
+      vars:
+        target_vm: "{{ item.vm }}"
+        vm_maxmem: "{{ item.maxmem | default(omit) }}"
+        vm_memory: "{{ item.memory | default(omit) }}"
+        vm_vcpus: "{{ item.vcpus | default(omit) }}"
+      loop: "{{ vm_resource_config }}"

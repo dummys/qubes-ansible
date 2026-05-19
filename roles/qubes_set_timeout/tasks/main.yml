@@ -1,3 +1,0 @@
----
-- name: Set qrexec_timeout for {{ target_vm }}
-  command: qvm-prefs {{ target_vm }} qrexec_timeout {{ qrexec_timeout }}
