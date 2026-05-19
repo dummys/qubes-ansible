@@ -10,7 +10,7 @@
       command: qubes-dom0-update -y
 
     - name: Install base packages
-      command: qubes-dom0-update -y tmux htop 7zip vim
+      command: qubes-dom0-update -y tmux htop 7z vim
 
   roles:
     - role: secureboot

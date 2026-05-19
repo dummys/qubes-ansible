@@ -14,7 +14,7 @@
       vars:
         target_vm: "{{ item }}"
         vm_qrexec_timeout: 3600
-      loop: "{{ groups['appvms'] + groups['templatevms'] + groups['standalonevms'] + groups['windows_vms'] }}"
+      loop: "{{ groups['appvms'] + groups['templatevms'] + groups['standalonevms'] + groups['windows_vms'] + groups['disp_vms']}}"
 
     - include_role:
         name: qubes_set_prefs

@@ -1,0 +1,53 @@
+---
+- name: Install Firefox (Debian)
+  ansible.builtin.apt:
+    name: firefox-esr
+    state: present
+  become: yes
+  when: ansible_os_family == 'Debian'
+
+- name: Install Firefox (RedHat)
+  ansible.builtin.dnf:
+    name: firefox
+    state: present
+  become: yes
+  when: ansible_os_family == 'RedHat'
+
+- name: Set Firefox distribution path
+  ansible.builtin.set_fact:
+    firefox_dist_path: "{{ '/usr/lib/firefox-esr/distribution' if ansible_os_family == 'Debian' else '/usr/lib/firefox/distribution' }}"
+
+- name: Create Firefox distribution directory
+  ansible.builtin.file:
+    path: "{{ firefox_dist_path }}"
+    state: directory
+    mode: '0755'
+  become: yes
+
+- name: Deploy Firefox policies
+  ansible.builtin.copy:
+    src: policies.json
+    dest: "{{ firefox_dist_path }}/policies.json"
+    mode: '0644'
+  become: yes
+
+- name: Create Firefox skel profile directory
+  ansible.builtin.file:
+    path: /etc/skel/.mozilla/firefox/default
+    state: directory
+    mode: '0755'
+  become: yes
+
+- name: Deploy Firefox profiles.ini to skel
+  ansible.builtin.copy:
+    src: profiles.ini
+    dest: /etc/skel/.mozilla/firefox/profiles.ini
+    mode: '0644'
+  become: yes
+
+- name: Deploy Firefox user.js to skel profile
+  ansible.builtin.copy:
+    src: user.js
+    dest: /etc/skel/.mozilla/firefox/default/user.js
+    mode: '0644'
+  become: yes

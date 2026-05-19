@@ -112,6 +112,7 @@ The OCR service similarly proxies port 11434 from `ocr-disp` → `llm-disp`.
 
 - `when: 0 > 1` marks tasks that are intentionally disabled (keeps YAML structure intact for future re-enablement)
 - Tasks that only run on VM creation use `when: <check_var>.rc != 0` (e.g. volume resize, clone)
+- Always use fully-qualified collection names (FQCN) for Ansible modules: `ansible.builtin.apt` not `apt`, `ansible.builtin.command` not `command`, `ansible.builtin.lineinfile` not `lineinfile`, etc.
 
 ## Keeping README.md up to date
 

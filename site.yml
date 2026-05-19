@@ -5,6 +5,9 @@
 - import_playbook: playbooks/dom0.yml
   tags: [dom0]
 
+- import_playbook: playbooks/firefox.yml
+  tags: [firefox]
+
 - import_playbook: playbooks/llm.yml
   tags: [llm]
 
