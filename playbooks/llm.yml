@@ -60,6 +60,8 @@
       when: llm_dvm_check.rc != 0
     - include_role:
         name: set_prefs
+        apply:
+          tags: [prefs, llm]
       tags: [prefs]
       vars:
         target_vm: "{{ host_llm_dvm }}"
@@ -138,6 +140,8 @@
       command: qvm-prefs {{ llm_dispvm }} netvm {{ netvm_default }}
     - include_role:
         name: set_prefs
+        apply:
+          tags: [prefs, llm]
       tags: [prefs]
       vars:
         target_vm: "{{ llm_dispvm }}"

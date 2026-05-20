@@ -11,6 +11,8 @@
   tasks:
     - include_role:
         name: set_prefs
+        apply:
+          tags: [prefs, base]
       tags: [prefs]
       vars:
         target_vm: "{{ item }}"
@@ -19,6 +21,8 @@
 
     - include_role:
         name: set_prefs
+        apply:
+          tags: [prefs, base]
       tags: [prefs]
       vars:
         target_vm: "{{ item.vm }}"

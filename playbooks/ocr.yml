@@ -58,6 +58,8 @@
       when: dvm_check.rc != 0
     - include_role:
         name: set_prefs
+        apply:
+          tags: [prefs, ocr]
       tags: [prefs]
       vars:
         target_vm: "{{ host_ocr_dvm }}"
@@ -105,6 +107,8 @@
       command: qvm-prefs {{ ocr_dispvm }} netvm {{ netvm_default }}
     - include_role:
         name: set_prefs
+        apply:
+          tags: [prefs, ocr]
       tags: [prefs]
       vars:
         target_vm: "{{ ocr_dispvm }}"

@@ -57,6 +57,8 @@
       command: qvm-prefs {{ sys_gpu_dvm }} template_for_dispvms true
     - include_role:
         name: set_prefs
+        apply:
+          tags: [prefs, sys-gpu]
       tags: [prefs]
       vars:
         target_vm: "{{ sys_gpu_dvm }}"
@@ -88,6 +90,8 @@
       command: qvm-prefs {{ sys_gpu_dispvm }} kernel ''
     - include_role:
         name: set_prefs
+        apply:
+          tags: [prefs, sys-gpu]
       tags: [prefs]
       vars:
         target_vm: "{{ sys_gpu_dispvm }}"
