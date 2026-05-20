@@ -147,7 +147,6 @@
         target_vm: "{{ llm_dispvm }}"
         vm_qrexec_timeout: "{{ qrexec_timeout_default }}"
         vm_vcpus: "{{ llm_vcpus }}"
-        vm_memory: "{{ llm_memory }}"
         vm_maxmem: "{{ llm_maxmem }}"
     - name: Attach GPU VGA
       command: qvm-pci attach {{ llm_dispvm }} dom0:{{ gpu_pci_id_vga }} --persistent
