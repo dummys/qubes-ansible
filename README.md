@@ -126,7 +126,7 @@ without removing the code.
 │   │   └── messenging.yml       # host_messenging_template, host_messenging_vm …
 │   │
 │   └── tasks/
-│       └── qubes_clone_template.yml   # Reusable: clone + set netvm + set qrexec_timeout
+│       └── clone_template.yml         # Reusable: clone + set netvm + set qrexec_timeout
 │
 └── roles/
     ├── base_packages/           # htop + tmux + ... on any Linux VM (apt or dnf via ansible_os_family)

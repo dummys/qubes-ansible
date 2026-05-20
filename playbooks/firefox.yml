@@ -7,7 +7,7 @@
   vars_files:
     - vars/firefox.yml
   tasks:
-    - include_tasks: tasks/qubes_clone_template.yml
+    - include_tasks: tasks/clone_template.yml
       vars:
         clone_src: "{{ firefox_base_template }}"
         clone_dest: "{{ host_firefox_template }}"
@@ -53,4 +53,4 @@
         name: set_prefs
       vars:
         target_vm: "{{ host_firefox_app }}"
-        vm_qrexec_timeout: 3600
+        vm_qrexec_timeout: "{{ qrexec_timeout_default }}"

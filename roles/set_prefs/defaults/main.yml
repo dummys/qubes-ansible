@@ -1,0 +1,5 @@
+---
+vm_qrexec_timeout: ""
+vm_maxmem: ""
+vm_memory: ""
+vm_vcpus: ""

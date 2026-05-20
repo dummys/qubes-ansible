@@ -1,6 +1,9 @@
 # group_vars/all/main.yml
 # Non-secret global variables. Secrets (admin_user, …) live in secrets.yml (vault).
 
+# Default qrexec timeout for all VMs
+qrexec_timeout_default: 3600
+
 # Dom0 Admin User — defined in secrets.yml vault
 admin_group: "{{ admin_user }}"
 admin_home: "/home/{{ admin_user }}"

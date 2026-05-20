@@ -1,16 +1,16 @@
 ---
 - name: Set qrexec_timeout for {{ target_vm }}
-  command: qvm-prefs {{ target_vm }} qrexec_timeout {{ vm_qrexec_timeout }}
-  when: vm_qrexec_timeout is defined
+  ansible.builtin.command: qvm-prefs {{ target_vm }} qrexec_timeout {{ vm_qrexec_timeout }}
+  when: vm_qrexec_timeout | string | length > 0
 
 - name: Set maxmem for {{ target_vm }}
-  command: qvm-prefs {{ target_vm }} maxmem {{ vm_maxmem }}
-  when: vm_maxmem is defined
+  ansible.builtin.command: qvm-prefs {{ target_vm }} maxmem {{ vm_maxmem }}
+  when: vm_maxmem | string | length > 0
 
 - name: Set memory for {{ target_vm }}
-  command: qvm-prefs {{ target_vm }} memory {{ vm_memory }}
-  when: vm_memory is defined
+  ansible.builtin.command: qvm-prefs {{ target_vm }} memory {{ vm_memory }}
+  when: vm_memory | string | length > 0
 
 - name: Set vcpus for {{ target_vm }}
-  command: qvm-prefs {{ target_vm }} vcpus {{ vm_vcpus }}
-  when: vm_vcpus is defined
+  ansible.builtin.command: qvm-prefs {{ target_vm }} vcpus {{ vm_vcpus }}
+  when: vm_vcpus | string | length > 0

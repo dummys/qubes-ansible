@@ -7,7 +7,7 @@
   vars_files:
     - vars/llm.yml
   tasks:
-    - include_tasks: tasks/qubes_clone_template.yml
+    - include_tasks: tasks/clone_template.yml
       vars:
         clone_src: "{{ llm_base_template }}"
         clone_dest: "{{ host_llm_template }}"
@@ -60,9 +60,10 @@
       when: llm_dvm_check.rc != 0
     - include_role:
         name: set_prefs
+      tags: [prefs]
       vars:
         target_vm: "{{ host_llm_dvm }}"
-        vm_qrexec_timeout: 3600
+        vm_qrexec_timeout: "{{ qrexec_timeout_default }}"
 
 - hosts: "{{ host_llm_dvm | default([]) }}"
   become: yes
@@ -135,17 +136,15 @@
       command: qvm-prefs {{ llm_dispvm }} virt_mode hvm
     - name: Set network
       command: qvm-prefs {{ llm_dispvm }} netvm {{ netvm_default }}
-    - name: Set VCPU count
-      command: qvm-prefs {{ llm_dispvm }} vcpus 10
-    - name: Set memory
-      command: qvm-prefs {{ llm_dispvm }} memory {{ llm_memory }}
-    - name: Disable memory balancing
-      command: qvm-prefs {{ llm_dispvm }} maxmem 0
     - include_role:
         name: set_prefs
+      tags: [prefs]
       vars:
         target_vm: "{{ llm_dispvm }}"
-        vm_qrexec_timeout: 3600
+        vm_qrexec_timeout: "{{ qrexec_timeout_default }}"
+        vm_vcpus: "{{ llm_vcpus }}"
+        vm_memory: "{{ llm_memory }}"
+        vm_maxmem: "{{ llm_maxmem }}"
     - name: Attach GPU VGA
       command: qvm-pci attach {{ llm_dispvm }} dom0:{{ gpu_pci_id_vga }} --persistent
     - name: Attach GPU Audio

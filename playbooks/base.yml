@@ -11,16 +11,18 @@
   tasks:
     - include_role:
         name: set_prefs
+      tags: [prefs]
       vars:
         target_vm: "{{ item }}"
-        vm_qrexec_timeout: 3600
+        vm_qrexec_timeout: "{{ qrexec_timeout_default }}"
       loop: "{{ groups['appvms'] + groups['templatevms'] + groups['standalonevms'] + groups['windows_vms'] + groups['disp_vms']}}"
 
     - include_role:
         name: set_prefs
+      tags: [prefs]
       vars:
         target_vm: "{{ item.vm }}"
-        vm_maxmem: "{{ item.maxmem | default(omit) }}"
-        vm_memory: "{{ item.memory | default(omit) }}"
-        vm_vcpus: "{{ item.vcpus | default(omit) }}"
+        vm_maxmem: "{{ item.maxmem | default('') }}"
+        vm_memory: "{{ item.memory | default('') }}"
+        vm_vcpus: "{{ item.vcpus | default('') }}"
       loop: "{{ vm_resource_config }}"

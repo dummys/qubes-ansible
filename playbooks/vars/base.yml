@@ -10,10 +10,6 @@ vm_resource_config:
     maxmem: 2000
     memory: 200
     vcpus: 1
-  - vm: llm-disp
-    maxmem: 0
-    memory: 4000
-    vcpus: 4
   - vm: windows_11_ltsc
     maxmem: 0
     memory: 8192

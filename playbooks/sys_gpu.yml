@@ -7,7 +7,7 @@
   vars_files:
     - vars/sys_gpu.yml
   tasks:
-    - include_tasks: tasks/qubes_clone_template.yml
+    - include_tasks: tasks/clone_template.yml
       vars:
         clone_src: "{{ sys_gpu_base_template }}"
         clone_dest: "{{ host_sys_gpu_template }}"
@@ -57,9 +57,10 @@
       command: qvm-prefs {{ sys_gpu_dvm }} template_for_dispvms true
     - include_role:
         name: set_prefs
+      tags: [prefs]
       vars:
         target_vm: "{{ sys_gpu_dvm }}"
-        vm_qrexec_timeout: 3600
+        vm_qrexec_timeout: "{{ qrexec_timeout_default }}"
 
 #
 # DispVM
@@ -85,15 +86,14 @@
       command: qvm-prefs {{ sys_gpu_dispvm }} virt_mode hvm
     - name: Set kernel
       command: qvm-prefs {{ sys_gpu_dispvm }} kernel ''
-    - name: Set memory
-      command: qvm-prefs {{ sys_gpu_dispvm }} memory {{ sys_gpu_memory }}
-    - name: Set max memory
-      command: qvm-prefs {{ sys_gpu_dispvm }} maxmem {{ sys_gpu_maxmem }}
     - include_role:
         name: set_prefs
+      tags: [prefs]
       vars:
         target_vm: "{{ sys_gpu_dispvm }}"
-        vm_qrexec_timeout: 3600
+        vm_qrexec_timeout: "{{ qrexec_timeout_default }}"
+        vm_memory: "{{ sys_gpu_memory }}"
+        vm_maxmem: "{{ sys_gpu_maxmem }}"
     - name: Attach GPU VGA
       command: qvm-pci attach {{ sys_gpu_dispvm }} dom0:{{ gpu_pci_id_vga }} --persistent
     - name: Attach GPU Audio

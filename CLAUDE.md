@@ -74,7 +74,7 @@ The `ansible-playbook.sh` wrapper greps for this prefix, resolves any Jinja2 ref
 ### VM Provisioning Pattern
 
 Each feature playbook (llm, ocr, sys-gpu) follows this sequence:
-1. **Template** — `include_tasks: tasks/qubes_clone_template.yml` clones a base template, sets the network, and sets `qrexec_timeout`; then the `_template` role runs inside the VM; finally the network is removed
+1. **Template** — `include_tasks: tasks/clone_template.yml` clones a base template, sets the network, and sets `qrexec_timeout`; then the `_template` role runs inside the VM; finally the network is removed
 2. **DVM** — Creates an AppVM with `template_for_dispvms=true`, applies the `_dvm_*` role(s) to configure persistent data (bind dirs, pull models), then shuts down
 3. **DispVM** — Creates the final `DispVM` class VM with PCI passthrough, memory/CPU settings
 4. **Networking** — Adds `qubes.ConnectTCP` policy entries and configures `qvm-connect-tcp` in client VM's `/rw/config/rc.local`
@@ -84,7 +84,7 @@ Each feature playbook (llm, ocr, sys-gpu) follows this sequence:
 | Component | Location | Purpose |
 |-----------|----------|---------|
 | `set_prefs` role | `roles/set_prefs/` | Sets any combination of `qrexec_timeout`, `maxmem`, `memory`, `vcpus` on a VM; use via `include_role` with `vars: target_vm: ...` and any of `vm_qrexec_timeout`, `vm_maxmem`, `vm_memory`, `vm_vcpus` — only defined vars are applied |
-| `qubes_clone_template` tasks | `playbooks/tasks/qubes_clone_template.yml` | Clone + set netvm + set timeout; use via `include_tasks` with `vars: clone_src/clone_dest` |
+| `clone_template` tasks | `playbooks/tasks/clone_template.yml` | Clone + set netvm + set timeout; use via `include_tasks` with `vars: clone_src/clone_dest` |
 
 ### Roles
 
@@ -114,6 +114,7 @@ The OCR service similarly proxies port 11434 from `ocr-disp` → `llm-disp`.
 - `when: 0 > 1` marks tasks that are intentionally disabled (keeps YAML structure intact for future re-enablement)
 - Tasks that only run on VM creation use `when: <check_var>.rc != 0` (e.g. volume resize, clone)
 - Always use fully-qualified collection names (FQCN) for Ansible modules: `ansible.builtin.apt` not `apt`, `ansible.builtin.command` not `command`, `ansible.builtin.lineinfile` not `lineinfile`, etc.
+- Never prefix filenames, role names, or task file names with `qubes_` — the entire project is Qubes-specific so the prefix adds no information (e.g. `clone_template.yml` not `qubes_clone_template.yml`, `set_prefs` not `qubes_set_prefs`)
 
 ## Keeping README.md up to date
 

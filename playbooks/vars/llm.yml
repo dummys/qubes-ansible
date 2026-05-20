@@ -4,5 +4,7 @@ host_llm_template: "llm-template-{{ llm_base_template }}"
 host_llm_dvm: llm-dvm
 llm_dispvm: llm-disp
 llm_memory: 12000
+llm_maxmem: 0
+llm_vcpus: 10
 llm_tcp_port: 11434
 host_llm_claude_code: claude-code

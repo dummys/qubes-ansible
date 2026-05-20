@@ -13,4 +13,4 @@
   command: qvm-prefs {{ clone_dest }} netvm {{ netvm_default }}
 
 - name: Set qrexec_timeout for {{ clone_dest }}
-  command: qvm-prefs {{ clone_dest }} qrexec_timeout 3600
+  command: qvm-prefs {{ clone_dest }} qrexec_timeout {{ qrexec_timeout_default }}

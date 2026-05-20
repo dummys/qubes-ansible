@@ -7,7 +7,7 @@
   vars_files:
     - vars/ocr.yml
   tasks:
-    - include_tasks: tasks/qubes_clone_template.yml
+    - include_tasks: tasks/clone_template.yml
       vars:
         clone_src: "{{ ocr_base_template }}"
         clone_dest: "{{ host_ocr_template }}"
@@ -58,9 +58,10 @@
       when: dvm_check.rc != 0
     - include_role:
         name: set_prefs
+      tags: [prefs]
       vars:
         target_vm: "{{ host_ocr_dvm }}"
-        vm_qrexec_timeout: 3600
+        vm_qrexec_timeout: "{{ qrexec_timeout_default }}"
 
 - hosts: "{{ host_ocr_dvm | default([]) }}"
   connection: qubes
@@ -104,9 +105,10 @@
       command: qvm-prefs {{ ocr_dispvm }} netvm {{ netvm_default }}
     - include_role:
         name: set_prefs
+      tags: [prefs]
       vars:
         target_vm: "{{ ocr_dispvm }}"
-        vm_qrexec_timeout: 3600
+        vm_qrexec_timeout: "{{ qrexec_timeout_default }}"
 
 #
 # Networking — OCR DispVM → LLM DispVM
