@@ -83,7 +83,7 @@ Each feature playbook (llm, ocr, sys-gpu) follows this sequence:
 
 | Component | Location | Purpose |
 |-----------|----------|---------|
-| `qubes_set_prefs` role | `roles/qubes_set_prefs/` | Sets any combination of `qrexec_timeout`, `maxmem`, `memory`, `vcpus` on a VM; use via `include_role` with `vars: target_vm: ...` and any of `vm_qrexec_timeout`, `vm_maxmem`, `vm_memory`, `vm_vcpus` — only defined vars are applied |
+| `set_prefs` role | `roles/set_prefs/` | Sets any combination of `qrexec_timeout`, `maxmem`, `memory`, `vcpus` on a VM; use via `include_role` with `vars: target_vm: ...` and any of `vm_qrexec_timeout`, `vm_maxmem`, `vm_memory`, `vm_vcpus` — only defined vars are applied |
 | `qubes_clone_template` tasks | `playbooks/tasks/qubes_clone_template.yml` | Clone + set netvm + set timeout; use via `include_tasks` with `vars: clone_src/clone_dest` |
 
 ### Roles

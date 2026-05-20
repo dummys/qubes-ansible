@@ -56,7 +56,7 @@
     - name: Set as DispVM template
       command: qvm-prefs {{ sys_gpu_dvm }} template_for_dispvms true
     - include_role:
-        name: qubes_set_prefs
+        name: set_prefs
       vars:
         target_vm: "{{ sys_gpu_dvm }}"
         vm_qrexec_timeout: 3600
@@ -90,7 +90,7 @@
     - name: Set max memory
       command: qvm-prefs {{ sys_gpu_dispvm }} maxmem {{ sys_gpu_maxmem }}
     - include_role:
-        name: qubes_set_prefs
+        name: set_prefs
       vars:
         target_vm: "{{ sys_gpu_dispvm }}"
         vm_qrexec_timeout: 3600

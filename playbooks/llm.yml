@@ -59,7 +59,7 @@
       command: qvm-volume resize {{ host_llm_dvm }}:private 100GB
       when: llm_dvm_check.rc != 0
     - include_role:
-        name: qubes_set_prefs
+        name: set_prefs
       vars:
         target_vm: "{{ host_llm_dvm }}"
         vm_qrexec_timeout: 3600
@@ -142,7 +142,7 @@
     - name: Disable memory balancing
       command: qvm-prefs {{ llm_dispvm }} maxmem 0
     - include_role:
-        name: qubes_set_prefs
+        name: set_prefs
       vars:
         target_vm: "{{ llm_dispvm }}"
         vm_qrexec_timeout: 3600

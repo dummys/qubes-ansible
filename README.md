@@ -140,7 +140,7 @@ without removing the code.
     ├── secureboot/              # sbctl backup/restore scripts + kernel install hook
     ├── messenging/              # Chrome, Snap, Signal, Whatsie; autostart symlinks
     ├── firefox/                 # Firefox install, policies, and skel profile
-    └── qubes_set_prefs/         # Reusable: set qrexec_timeout / maxmem / memory / vcpus on any VM
+    └── set_prefs/               # Reusable: set qrexec_timeout / maxmem / memory / vcpus on any VM
 ```
 
 
