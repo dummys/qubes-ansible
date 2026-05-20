@@ -15,7 +15,7 @@ incremental changes.
 
 Specifically it automates:
 
-- **Dom0** — secure-boot key management and kernel hook installation
+- **Dom0** — package updates, utility scripts (e.g. `reset-vm-resources.sh`), and optional secure-boot key management
 - **LLM stack** — NVIDIA driver/CUDA installation, Ollama service, model pulling,
   GPU PCI passthrough, and TCP proxy wiring so `claude-code` can reach the model
 - **OCR stack** — PDF OCR service backed by the LLM DispVM, with its own TCP proxy
@@ -359,8 +359,22 @@ Always use `./ansible-playbook.sh` — never `ansible-playbook` directly.
 # Provision the messaging AppVM
 ./ansible-playbook.sh site.yml --tags messenging
 
-# Apply Dom0 secure-boot configuration
+# Apply Dom0 configuration (package updates, scripts — secureboot excluded)
 ./ansible-playbook.sh site.yml --tags dom0
+```
+
+### Configure secure boot (Dom0 — explicit opt-in)
+
+The `secureboot` role is tagged `never` and does **not** run as part of the normal
+`--tags dom0` run. Invoke it explicitly when you need to (re)deploy the sbctl
+backup/restore scripts or the kernel install hook:
+
+```bash
+# Run secureboot alongside the full Dom0 setup
+./ansible-playbook.sh site.yml --tags dom0,secureboot
+
+# Run secureboot alone (skips package updates and other Dom0 tasks)
+./ansible-playbook.sh playbooks/dom0.yml --tags secureboot
 ```
 
 ### Install or update base packages on all Linux VMs

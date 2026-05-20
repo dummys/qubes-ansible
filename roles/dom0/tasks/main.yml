@@ -1,0 +1,22 @@
+---
+- name: Update all packages
+  ansible.builtin.command: qubes-dom0-update -y
+
+- name: Install base packages
+  ansible.builtin.command: qubes-dom0-update -y tmux htop 7z vim
+
+- name: Ensure bin directory exists
+  ansible.builtin.file:
+    path: "{{ bin_folder }}"
+    state: directory
+    owner: "{{ admin_user }}"
+    group: "{{ admin_group }}"
+    mode: '0755'
+
+- name: Deploy reset-vm-resources script
+  ansible.builtin.copy:
+    src: reset-vm-resources.sh
+    dest: "{{ bin_folder }}/"
+    owner: "{{ admin_user }}"
+    group: "{{ admin_group }}"
+    mode: '0755'
