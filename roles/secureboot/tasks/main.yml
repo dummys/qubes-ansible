@@ -1,29 +1,68 @@
 ---
-- name: Check if bin directory exists
+- name: Install Secure Boot tools
+  ansible.builtin.command: qubes-dom0-update -y sbsigntool grub2-efi-x64-modules efitools mokutil
+
+- name: Ensure bin directory exists
   ansible.builtin.file:
     path: "{{ bin_folder }}"
     state: directory
     owner: "{{ admin_user }}"
     group: "{{ admin_group }}"
     mode: '0755'
-- name: Create script to backup key from secureboot
-  ansible.builtin.copy:
-    src: "sb-backup.sh"
-    dest: "{{ bin_folder }}/"
+
+- name: Deploy sb-backup script
+  ansible.builtin.template:
+    src: sb-backup.sh.j2
+    dest: "{{ bin_folder }}/sb-backup.sh"
     owner: "{{ admin_user }}"
     group: "{{ admin_group }}"
     mode: '0755'
-- name: Create script to restore keys from the backup to secure boot
-  ansible.builtin.copy:
-    src: "sb-restore.sh"
-    dest: "{{ bin_folder }}/"
+
+- name: Deploy sb-restore script
+  ansible.builtin.template:
+    src: sb-restore.sh.j2
+    dest: "{{ bin_folder }}/sb-restore.sh"
     owner: "{{ admin_user }}"
     group: "{{ admin_group }}"
     mode: '0755'
-- name: Copy hook to call sbctl after update
+
+- name: Copy shimx64.efi to EFI partition
   ansible.builtin.copy:
-    src: "99-sbctl.install"
-    dest: "/etc/kernel/install.d/"
-    owner: "root"
-    group: "root"
-    mode: '0755'
+    src: shimx64.efi
+    dest: /boot/efi/EFI/qubes/shimx64.efi
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Copy mmx64.efi to EFI partition
+  ansible.builtin.copy:
+    src: mmx64.efi
+    dest: /boot/efi/EFI/qubes/mmx64.efi
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Check if Qubes Secure Boot EFI entry already exists
+  ansible.builtin.shell: efibootmgr | grep -q "Qubes (Secure Boot)"
+  register: _efi_entry_check
+  failed_when: false
+  changed_when: false
+
+- name: Create Qubes Secure Boot EFI boot entry
+  ansible.builtin.command: >
+    efibootmgr --create
+    --disk {{ sb_efi_disk }}
+    --part {{ sb_efi_part }}
+    --label "Qubes (Secure Boot)"
+    --loader '\EFI\qubes\shimx64.efi'
+  when: _efi_entry_check.rc != 0
+
+- name: Manual steps required to complete Secure Boot setup
+  ansible.builtin.debug:
+    msg:
+      - "EFI files and boot entry are configured. Complete setup manually:"
+      - "1. Reboot and select 'Qubes (Secure Boot)' — do NOT enable Secure Boot yet"
+      - "2. If the system boots correctly, run: sudo mokutil --disable-validation"
+      - "   Set a one-time password when prompted — it will be required at the next boot"
+      - "3. Reboot, enter MokManager, select 'Change Secure Boot state' and enter the password"
+      - "4. Reboot again and enable Secure Boot in the UEFI firmware settings"

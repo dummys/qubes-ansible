@@ -1,7 +1,0 @@
-#!/usr/bin/sh
-COMMAND="$1"
-case "$COMMAND" in
-    add)
-        exec /usr/local/bin/sbctl sign-all
-        ;;
-esac

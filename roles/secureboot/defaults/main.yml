@@ -1,2 +1,4 @@
 ---
 sb_backup_folder: "{{ admin_home }}/Documents/sb-backup"
+sb_efi_disk: /dev/nvme1n1
+sb_efi_part: 1
