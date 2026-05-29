@@ -120,7 +120,7 @@
   connection: local
   vars_files:
     - vars/llm.yml
-    - vars/sys_gpu.yml
+#    - vars/sys_gpu.yml
   tasks:
     - name: Check if DispVM exists
       shell: "qvm-ls --raw-data --fields name | grep -w {{ llm_dispvm }}"
@@ -148,10 +148,10 @@
         vm_qrexec_timeout: "{{ qrexec_timeout_default }}"
         vm_vcpus: "{{ llm_vcpus }}"
         vm_maxmem: "{{ llm_maxmem }}"
-    - name: Attach GPU VGA
-      command: qvm-pci attach {{ llm_dispvm }} dom0:{{ gpu_pci_id_vga }} --persistent
-    - name: Attach GPU Audio
-      command: qvm-pci attach {{ llm_dispvm }} dom0:{{ gpu_pci_id_audio }} --persistent
+#    - name: Attach GPU VGA
+#      command: qvm-pci attach {{ llm_dispvm }} dom0:{{ gpu_pci_id_vga }} --persistent
+#    - name: Attach GPU Audio
+#      command: qvm-pci attach {{ llm_dispvm }} dom0:{{ gpu_pci_id_audio }} --persistent
 
 #
 # Networking
