@@ -95,13 +95,13 @@
         guest: "{{ host_llm_dvm }}"
         state: running
 
-- hosts: "{{ host_llm_dvm | default([]) }}"
-  become: yes
-  connection: qubes
-  vars_files:
-    - vars/llm.yml
-  roles:
-    - role: llm_dvm_2
+#- hosts: "{{ host_llm_dvm | default([]) }}"
+#  become: yes
+#  connection: qubes
+#  vars_files:
+#    - vars/llm.yml
+#  roles:
+#    - role: llm_dvm_2
 
 - hosts: local
   connection: local

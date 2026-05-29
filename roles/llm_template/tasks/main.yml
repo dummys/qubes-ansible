@@ -3,7 +3,7 @@
   ansible.builtin.apt:
     name:
       - passwd
-      - htop
+      - btop
       - nvtop
     state: present
 - name: Download Nvidia repositories
