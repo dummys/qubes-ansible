@@ -11,11 +11,11 @@
 - import_playbook: playbooks/llm.yml
   tags: [llm]
 
-- import_playbook: playbooks/ocr.yml
-  tags: [ocr]
+#- import_playbook: playbooks/ocr.yml
+#  tags: [ocr]
 
-- import_playbook: playbooks/sys_gpu.yml
-  tags: [sys-gpu]
+#- import_playbook: playbooks/sys_gpu.yml
+#  tags: [sys-gpu]
 
 - import_playbook: playbooks/messenging.yml
   tags: [messenging]
