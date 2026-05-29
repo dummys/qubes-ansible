@@ -3,7 +3,7 @@
   ansible.builtin.command: qubes-dom0-update -y
 
 - name: Install base packages
-  ansible.builtin.command: qubes-dom0-update -y tmux htop 7z vim
+  ansible.builtin.command: qubes-dom0-update -y tmux btop 7z vim git
 
 - name: Ensure bin directory exists
   ansible.builtin.file:
