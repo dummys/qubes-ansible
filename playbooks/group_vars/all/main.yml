@@ -16,8 +16,8 @@ vm_user_home: "/home/{{ vm_user }}"
 vm_user_documents: "/home/{{ vm_user }}/Documents"
 
 # Network
-netvm_default: disp-sys-vpn-proton-ch
-#netvm_default: sys-firewall
+#netvm_default: disp-sys-vpn-proton-ch
+netvm_default: sys-firewall
 
 # VM Bind dir file
 binds_dir: /rw/config/qubes-bind-dirs.d
